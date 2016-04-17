@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25123.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transrender", "Transrender\Transrender.csproj", "{57D85331-0AC1-4E3B-9898-D46360FEF68E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoxelLoader", "VoxelLoader\VoxelLoader.csproj", "{B53AAB1B-C007-4054-B4CE-867FDFB7633C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{57D85331-0AC1-4E3B-9898-D46360FEF68E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57D85331-0AC1-4E3B-9898-D46360FEF68E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57D85331-0AC1-4E3B-9898-D46360FEF68E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57D85331-0AC1-4E3B-9898-D46360FEF68E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B53AAB1B-C007-4054-B4CE-867FDFB7633C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B53AAB1B-C007-4054-B4CE-867FDFB7633C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B53AAB1B-C007-4054-B4CE-867FDFB7633C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B53AAB1B-C007-4054-B4CE-867FDFB7633C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
