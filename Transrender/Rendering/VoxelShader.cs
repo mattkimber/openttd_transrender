@@ -9,8 +9,8 @@ namespace Transrender.Rendering
         private IPalette _palette;
         private byte[][][] _voxels;
 
-        public int Width { get; set; }
-        
+        public int Width { get; set; }    
+
         public int Height { get; set; }
         
         public int Depth { get; set; }
@@ -72,7 +72,7 @@ namespace Transrender.Rendering
                 {
                     for (var k = z > 1 ? -1 : 0; k < (z >= (Height - 2) ? Height - z : 2); k++)
                     {
-                        if (_voxels[x + i][y + j][z + k] != 0)
+                        if (GetRawPixel(x + i,y + j, z + k) != 0)
                         {
                             occlusionCount--;
                         }
@@ -89,7 +89,7 @@ namespace Transrender.Rendering
 
             offset -= shadowVector
                 .Where(t => x + t[0] >= 0 && x + t[0] < Width && y + t[1] >= 0 && y + t[1] < Depth && z + t[2] >= 0 && z + t[2] < Height)
-                .Count(t => _voxels[x + t[0]][y + t[1]][z + t[2]] != 0);
+                .Count(t => GetRawPixel(x + t[0],y + t[1],z + t[2]) != 0);
 
             return offset;
         }
@@ -101,7 +101,7 @@ namespace Transrender.Rendering
 
         public byte ShadePixel(int x, int y, int z, int screenX, int screenY, int[][] shadowVector)
         {
-            var originalColor = (double)_voxels[x][y][z];
+            var originalColor = (double)GetRawPixel(x,y, z);
 
             if(_palette.IsSpecialColour((byte)originalColor))
             {
@@ -118,7 +118,7 @@ namespace Transrender.Rendering
 
         public bool IsTransparent(int x, int y, int z)
         {
-            return _voxels[x][y][z] == 0;
+            return GetRawPixel(x,y, z) == 0;
         }
 
         /*

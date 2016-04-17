@@ -51,15 +51,15 @@
     <Compile Include="Projector\IProjector.cs" />
     <Compile Include="Projector\TTDProjector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Rendering\BitmapGeometry.cs" />
     <Compile Include="Rendering\BitmapRenderer.cs" />
+    <Compile Include="Rendering\Sprite.cs" />
     <Compile Include="Rendering\VoxelScaler.cs" />
     <Compile Include="Rendering\VoxelShader.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="erf_b.vox">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Include="erf_b.vox" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\VoxelLoader\VoxelLoader.csproj">

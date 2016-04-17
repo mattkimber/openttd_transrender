@@ -17,8 +17,8 @@ namespace Transrender.Projector
 
         public int[] GetProjectedValues(double x, double y, double z, int projection, double scale)
         {
-            var projectedX = (InterpolateProjection(XProjections, x, y, z, projection) * scale);
-            var projectedY = (InterpolateProjection(YProjections, x, y, z, projection) * scale);
+            var projectedX = (GetProjection(XProjections, x, y, z, projection) * scale);
+            var projectedY = (GetProjection(YProjections, x, y, z, projection) * scale);
 
             return new[] { (int)(projectedX), (int)(projectedY) };
         }
@@ -39,41 +39,6 @@ namespace Transrender.Projector
             new[]{new[]{-1, 1, -1}, new[]{-1, 0, -1}, new[]{0, 1, -1}},
             new[]{new[]{0, 1, -1}, new[]{-1, 1, -1}, new[]{1, 1, -1}}
         };
-
-        public double GetMaxProjectedWidth(int projection)
-        {
-            var allProjections = new[] {
-                ((_depth) / 1.5),
-                (((_width) / 2.0) + ((_depth) / 2.0)),
-                (_width),
-                (((_width) / 2.0) + ((_depth) / 2.0)),
-                ((_depth) / 1.5),
-                (((_width) / 2.0) + ((_depth) / 2.0)),
-                (_width),
-                (((_width) / 2.0) + ((_depth) / 2.0)),
-                ((_depth) / 1.5)
-            };
-
-            return allProjections[projection];
-        }
-
-
-        public double GetMaxProjectedHeight(int projection)
-        {
-            var allProjections = new[] {
-                (((_width) / 2.0) + (_height)),
-                (((_width) / 4.0) + ((_depth) / 4.0) + (_height)),
-                (((_depth) / 4.0) + (_height)),
-                (((_width) / 4.0) + ((_depth) / 4.0) + (_height)),
-                (((_width) / 2.0) + (_height)),
-                (((_width) / 4.0) + ((_depth) / 4.0) + (_height)),
-                (((_depth) / 4.0) + (_height)),
-                (((_width) / 4.0) + ((_depth) / 4.0) + (_height)),
-                (((_width) / 2.0) + (_height))
-            };
-
-            return allProjections[projection];
-        }
 
         public Func<double, double, double, int, int, int, double>[] XProjections = {
             (x, y, z, width, height, depth) => (y / 1.5),
@@ -100,7 +65,7 @@ namespace Transrender.Projector
         };
 
 
-        public double InterpolateProjection(Func<double, double, double, int, int, int, double>[] projectionFunctions,
+        public double GetProjection(Func<double, double, double, int, int, int, double>[] projectionFunctions,
                                          double x, double y, double z,
                                          int projection)
         {

@@ -10,13 +10,10 @@ namespace Transrender.Rendering
 {
     public class BitmapRenderer
     {
-        private const int interSpriteWidth = 8;
-        private const int leftBorder = 0;
-        private const int topBorder = 0;
-
         private VoxelShader _shader;
         private IProjector _projector;
         private IPalette _palette;
+        private BitmapGeometry _geometry;
         private double _scale;
 
         private const int _renderScale = 2;
@@ -27,80 +24,7 @@ namespace Transrender.Rendering
             _projector = projector;
             _palette = palette;
             _scale = scale;
-        }
-
-        private byte[][] GetRenderedPixels(int projection)
-        {
-            var flipX = projection <= 2 || projection >= 6;
-            var flipY = projection >= 3;
-
-            var renderScale = _scale * (double)_renderScale;
-
-            var width = (int)(_projector.GetMaxProjectedWidth(projection) * renderScale);
-            var height = (int)(_projector.GetMaxProjectedHeight(projection) * renderScale);
-
-            var step = 1.0 / (renderScale * 2.0);
-
-            var result = new byte[width][];
-            for(var i = 0; i < width; i++)
-            {
-                result[i] = new byte[height];
-            }
-
-            for (var x = flipX ? (double)_shader.Width - 1 : 0.0; flipX ? x >= 0 : x < _shader.Width; x += (flipX ? -step : step))
-            {
-                for (var y = flipY ? (double)_shader.Depth - 1 : 0.0; flipY ? y >= 0 : y < _shader.Depth; y += (flipY ? -step : step))
-                {
-                    for (var z = 0.0; z < _shader.Height; z+= step)
-                    {
-                        var screenSpace = _projector.GetProjectedValues(x, y, z, projection, renderScale);
-                        if (!_shader.IsTransparent((int)x, (int)y, (int)z) && screenSpace[0] < width && screenSpace[1] < height)
-                        {
-                            var pixel = _shader.ShadePixel((int)x, (int)y, (int)z, screenSpace[0], screenSpace[1], _projector.GetShadowVector(projection));
-                            if (screenSpace[0] > 0 && screenSpace[1] > 0)
-                            {
-                                result[screenSpace[0]][screenSpace[1]] = pixel;
-                            }   
-                        }
-                    }
-                }
-            }
-
-            return result;
-        }
-        
-        private List<byte>[][] GetPixelLists(int projection)
-        {
-            var pixels = GetRenderedPixels(projection);
-
-            var renderFactor = _renderScale;
-
-            var width = pixels.Length / renderFactor + 1;
-            var height = pixels[0].Length / renderFactor + 1;
-
-            var list = new List<byte>[width][];
-
-            for (var x = 0; x < pixels.Length; x++)
-            {
-                if (list[x/renderFactor] == null)
-                {
-                    list[x/renderFactor] = new List<byte>[height];
-                }
-
-                for (var y = 0; y < pixels[x].Length; y++)
-                {
-                    var source = pixels[x][y];
- 
-                    if(list[x/renderFactor][y/renderFactor] == null)
-                    {
-                        list[x/renderFactor][y/renderFactor] = new List<byte>();
-                    }
-
-                    list[x/renderFactor][y/renderFactor].Add(source);
-                }
-            }
-
-            return list;
+            _geometry = new BitmapGeometry(scale);
         }
 
         private void RenderProjection(
@@ -110,18 +34,21 @@ namespace Transrender.Rendering
             int stride,
             int projection)
         {
-            var pixelList = GetPixelLists(projection);
+            var sprite = new Sprite(projection, _geometry, _shader, _projector);
 
-            for (var x = 0; x < pixelList.Length; x++)
+            var finalXOffset = xOffset + (_geometry.GetSpriteWidth(projection) - (sprite.Width + 3));
+            var finalYOffset = yOffset + (_geometry.GetSpriteHeight(projection) - (sprite.Height + 3));
+
+            for (var x = 0; x < sprite.PixelLists.Length; x++)
             {
-                for (var y = 0; y < (pixelList[x] == null ? 0 : pixelList[x].Length); y++)
+                for (var y = 0; y < (sprite.PixelLists[x] == null ? 0 : sprite.PixelLists[x].Length); y++)
                 {
-                    if(pixelList[x][y] != null)
+                    if(sprite.PixelLists[x][y] != null)
                     { 
-                        var colour = _palette.GetCombinedColour(pixelList[x][y]);
-                        var destinationPixel = xOffset + x + ((y + yOffset) * stride);
+                        var colour = _palette.GetCombinedColour(sprite.PixelLists[x][y]);
+                        var destinationPixel = finalXOffset + x + ((finalYOffset + y) * stride);
 
-                        if (destinationPixel < pixels.Length)
+                        if (destinationPixel < pixels.Length && (finalXOffset + x) >= 0 && (finalYOffset + y) >= 0 && colour != 0)
                         {
                             pixels[destinationPixel] = colour;
                         }
@@ -132,9 +59,9 @@ namespace Transrender.Rendering
         
         private static void RenderBox(byte[] pixels, int x1, int y1, int width, int height, int stride)
         {
-            for (var x = x1; x <= x1 + width; x++)
+            for (var x = x1; x < x1 + width; x++)
             {
-                for (var y = y1; y <= y1 + height; y++)
+                for (var y = y1; y < y1 + height; y++)
                 {
                     pixels[x + (y * stride)] = 0;
                 }
@@ -153,15 +80,13 @@ namespace Transrender.Rendering
                 pixels[i] = 255;
             }
 
-            int x = leftBorder;
-
             for (int i = 0; i < 8; i ++)
             {
-                var width = (int)(_projector.GetMaxProjectedWidth(i) * _scale);
-                var height = (int)(_projector.GetMaxProjectedHeight(i) * _scale);
-                RenderBox(pixels, x, topBorder, width, height, bitmap.Width);
-                RenderProjection(pixels, x, topBorder, bitmap.Width, i);
-                x = x + width + interSpriteWidth;
+                var x = _geometry.GetSpriteLeft(i);
+                var width = _geometry.GetSpriteWidth(i);
+                var height = _geometry.GetSpriteHeight(i);
+                RenderBox(pixels, x, 0, width, height, bitmap.Width);
+                RenderProjection(pixels, x, 0, bitmap.Width, i);
             }
 
 
@@ -170,26 +95,10 @@ namespace Transrender.Rendering
             bitmap.UnlockBits(bitmapData);
         }
 
-        public int GetBitmapWidth()
-        {
-            var width = 0;
-            width += leftBorder;
-
-            for (int i = 0; i < 8; i ++)
-            {
-                width += (int)(_projector.GetMaxProjectedWidth(i) * _scale) + interSpriteWidth;
-            }
-
-            return ((width + 1) / 4) * 4;
-        }
-
         public void RenderToFile(string fileName)
         {
-            var width = GetBitmapWidth();
-
-            var maxWidth = _shader.Depth;
-
-            var height = 2 *  (int)((_shader.Depth + maxWidth) * _scale) + (interSpriteWidth * 2) + topBorder;
+            var width = _geometry.GetTotalWidth();
+            var height = _geometry.GetTotalHeight();
 
             using (var b = new Bitmap(width, height, PixelFormat.Format8bppIndexed))
             {
@@ -198,21 +107,5 @@ namespace Transrender.Rendering
                 b.Save(fileName, ImageFormat.Png);
             }
         }
-
-        /*
-        public void RenderBlankFile(string fileName)
-        {
-            using (var b = new Bitmap(1, 1, PixelFormat.Format8bppIndexed))
-            {
-                b.Palette = _palette.Palette;
-                if (!Directory.Exists("output/png"))
-                {
-                    Directory.CreateDirectory("output/png");
-                }
-
-                b.Save("output/" + fileName, ImageFormat.Png);
-            }
-        }
-        */
     }
 }

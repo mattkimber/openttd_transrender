@@ -10,7 +10,5 @@ namespace Transrender.Projector
     {
         int[] GetProjectedValues(double x, double y, double z, int projection, double scale);
         int[][] GetShadowVector(int projection);
-        double GetMaxProjectedWidth(int projection);
-        double GetMaxProjectedHeight(int projection);
     }
 }
