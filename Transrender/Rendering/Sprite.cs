@@ -40,8 +40,8 @@ namespace Transrender.Rendering
                     {
                         var screenSpace = projector.GetProjectedValues(x, y, z, projection, renderScale);
 
-                        Width = screenSpace[0] * geometry.Scale > Width ? (int)(screenSpace[0] * geometry.Scale) : Width;
-                        Height = screenSpace[1] * geometry.Scale > Height ? (int)(screenSpace[1] * geometry.Scale) : Height;
+                        Width = screenSpace[0] > Width ? screenSpace[0] : Width;
+                        Height = screenSpace[1] > Height ? screenSpace[1] : Height;
 
                         if (!shader.IsTransparent((int)x, (int)y, (int)z) && screenSpace[0] < width && screenSpace[1] < height && screenSpace[0] >= 0 && screenSpace[1] >= 0)
                         {
@@ -53,6 +53,8 @@ namespace Transrender.Rendering
             }
 
             PixelLists = GetPixelLists(projection, result);
+            Width = Width / BitmapGeometry.RenderScale;
+            Height = Height / BitmapGeometry.RenderScale;
         }
 
         private List<byte>[][] GetPixelLists(int projection, byte[][] pixels)

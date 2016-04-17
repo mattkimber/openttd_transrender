@@ -36,8 +36,8 @@ namespace Transrender.Rendering
         {
             var sprite = new Sprite(projection, _geometry, _shader, _projector);
 
-            var finalXOffset = xOffset + (_geometry.GetSpriteWidth(projection) - (sprite.Width + 3));
-            var finalYOffset = yOffset + (_geometry.GetSpriteHeight(projection) - (sprite.Height + 3));
+            var finalXOffset = (int)(xOffset + (_geometry.GetSpriteWidth(projection) - (sprite.Width + (4 * _scale))));
+            var finalYOffset = (int)(yOffset + (_geometry.GetSpriteHeight(projection) - (sprite.Height + (4 * _scale))));
 
             for (var x = 0; x < sprite.PixelLists.Length; x++)
             {
