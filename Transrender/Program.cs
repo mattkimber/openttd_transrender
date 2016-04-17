@@ -24,7 +24,7 @@ namespace Transrender
                 var shader = new VoxelShader(palette, voxels);
                 var projector = new TTDProjector(shader.Width, shader.Height, shader.Depth);
 
-                var renderer = new BitmapRenderer(shader, projector, palette, 1.5);
+                var renderer = new BitmapRenderer(shader, projector, palette, 0.5);
 
                 renderer.RenderToFile(file + ".png");
 
