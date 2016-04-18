@@ -34,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
@@ -53,12 +54,17 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rendering\BitmapGeometry.cs" />
     <Compile Include="Rendering\BitmapRenderer.cs" />
+    <Compile Include="Rendering\ISpriteRenderer.cs" />
+    <Compile Include="Rendering\PainterSpriteRenderer.cs" />
+    <Compile Include="Rendering\RaycastRenderer.cs" />
     <Compile Include="Rendering\Sprite.cs" />
     <Compile Include="Rendering\VoxelScaler.cs" />
     <Compile Include="Rendering\VoxelShader.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="App.config">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="erf_b.vox" />
   </ItemGroup>
   <ItemGroup>

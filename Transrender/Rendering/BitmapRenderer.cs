@@ -63,7 +63,7 @@ namespace Transrender.Rendering
             {
                 for (var y = y1; y < y1 + height; y++)
                 {
-                    pixels[x + (y * stride)] = 0;
+                    //pixels[x + (y * stride)] = 0;
                 }
             }
         }

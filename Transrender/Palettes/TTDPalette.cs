@@ -10,7 +10,7 @@ namespace Transrender.Palettes
     {
         private ColorPalette _palette = null;
 
-        private HashSet<int> _priorityColours = new HashSet<int> { 15 }; //, 16, 17, 18, 19, 20, 21, 22, 23 };
+        private HashSet<int> _priorityColours = new HashSet<int> { 15 };
 
         private ColourFlag[] _colourFlags;
 

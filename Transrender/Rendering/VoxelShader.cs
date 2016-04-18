@@ -96,10 +96,15 @@ namespace Transrender.Rendering
 
         public byte GetRawPixel(int x, int y, int z)
         {
+            if(x >= Width || y >= Depth || z >= Height || x < 0 || y < 0 || z < 0)
+            {
+                return 0;
+            }
+
             return _voxels[x][y][z];
         }
 
-        public byte ShadePixel(int x, int y, int z, int screenX, int screenY, int[][] shadowVector)
+        public byte ShadePixel(int x, int y, int z, int[][] shadowVector)
         {
             var originalColor = (double)GetRawPixel(x,y, z);
 

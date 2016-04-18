@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,47 +15,44 @@ namespace Transrender.Rendering
         
         public List<byte>[][] PixelLists;
 
+        private ISpriteRenderer _renderer;
+
         public Sprite(int projection, BitmapGeometry geometry, VoxelShader shader, IProjector projector)
         {
-            var flipX = projection <= 2 || projection >= 6;
-            var flipY = projection >= 3;
+            SetRenderer(projection, geometry, shader, projector);
 
-            var renderScale = (geometry.Scale) * BitmapGeometry.RenderScale;
+            var pixels = _renderer.GetPixels();
 
-            var width = (int)(geometry.GetSpriteWidth(projection) * (renderScale / geometry.Scale));
-            var height = (int)(geometry.GetSpriteHeight(projection) * (renderScale / geometry.Scale));
-
-            var step = 1.0 / (renderScale * 2.0);
-
-            var result = new byte[width][];
-            for (var i = 0; i < width; i++)
+            for (var x = 0; x <= shader.Width; x += shader.Width)
             {
-                result[i] = new byte[height];
-            }
-
-            for (var x = flipX ? (double)shader.Width - 1 : 0.0; flipX ? x >= 0 : x < shader.Width; x += (flipX ? -step : step))
-            {
-                for (var y = flipY ? (double)shader.Depth - 1 : 0.0; flipY ? y >= 0 : y < shader.Depth; y += (flipY ? -step : step))
+                for (var y = 0; y <= shader.Depth; y+= shader.Depth)
                 {
-                    for (var z = 0.0; z < shader.Height; z += step)
+                    for (var z = 0; z <= shader.Height; z+= shader.Height)
                     {
-                        var screenSpace = projector.GetProjectedValues(x, y, z, projection, renderScale);
+                        var screenSpace = projector.GetProjectedValues(x, y, z, projection, geometry.Scale);
 
                         Width = screenSpace[0] > Width ? screenSpace[0] : Width;
                         Height = screenSpace[1] > Height ? screenSpace[1] : Height;
-
-                        if (!shader.IsTransparent((int)x, (int)y, (int)z) && screenSpace[0] < width && screenSpace[1] < height && screenSpace[0] >= 0 && screenSpace[1] >= 0)
-                        {
-                            var pixel = shader.ShadePixel((int)x, (int)y, (int)z, screenSpace[0], screenSpace[1], projector.GetShadowVector(projection));
-                            result[screenSpace[0]][screenSpace[1]] = pixel;
-                        }
                     }
                 }
             }
 
-            PixelLists = GetPixelLists(projection, result);
-            Width = Width / BitmapGeometry.RenderScale;
-            Height = Height / BitmapGeometry.RenderScale;
+            PixelLists = GetPixelLists(projection, pixels);
+        }
+
+        private void SetRenderer(int projection, BitmapGeometry geometry, VoxelShader shader, IProjector projector)
+        {
+            var rendererChoice = ConfigurationManager.AppSettings["renderer"] ?? "default";
+
+            switch (rendererChoice.ToLower())
+            {
+                case "raycast":
+                    _renderer = new RaycastRenderer(projection, geometry, shader, projector);
+                    break;
+                default:
+                    _renderer = new PainterSpriteRenderer(projection, geometry, shader, projector);
+                    break;
+            }
         }
 
         private List<byte>[][] GetPixelLists(int projection, byte[][] pixels)
