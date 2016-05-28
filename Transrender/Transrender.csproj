@@ -45,6 +45,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration\RenderTarget.cs" />
+    <Compile Include="Configuration\ConfigurationElementCollection.cs" />
+    <Compile Include="Configuration\RenderTargetsSection.cs" />
     <Compile Include="Palettes\IPalette.cs" />
     <Compile Include="Palettes\PaletteFlags.cs" />
     <Compile Include="Palettes\TTDPalette.cs" />
