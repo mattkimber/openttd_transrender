@@ -120,7 +120,8 @@ namespace Transrender.Rendering
                 var b = new Bitmap(width, height, PixelFormat.Format32bppArgb);
                 var m = new Bitmap(width, height, PixelFormat.Format8bppIndexed);
 
-                m.Palette = new GreyScalePalette().Palette;
+                // This needs to be the TTD palette or NML will complain
+                m.Palette = _palette.Palette;
 
                 RenderVoxelObject(b, m);
  

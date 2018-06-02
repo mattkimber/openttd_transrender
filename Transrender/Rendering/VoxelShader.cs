@@ -107,10 +107,23 @@ namespace Transrender.Rendering
         public ShaderResult ShadePixel(int x, int y, int z, int[][] shadowVector)
         {
             var originalColor = (double)GetRawPixel(x,y, z);
-            var r = _palette.Palette.Entries[(byte)originalColor].R;
-            var g = _palette.Palette.Entries[(byte)originalColor].G;
-            var b = _palette.Palette.Entries[(byte)originalColor].B;
-            var m = _palette.IsMaskColour((byte)originalColor) ? (byte)255 : (byte)0;
+
+            byte r, g, b, m;
+
+            if (_palette.IsMaskColour((byte)originalColor))
+            {
+                r = _palette.GetGreyscaleEquivalent(originalColor);
+                g = _palette.GetGreyscaleEquivalent(originalColor);
+                b = _palette.GetGreyscaleEquivalent(originalColor);
+                m = _palette.IsMaskColour((byte)originalColor) ? _palette.GetRangeMidpoint(originalColor) : (byte)0;
+            }
+            else
+            {
+                r = _palette.Palette.Entries[(byte)originalColor].R;
+                g = _palette.Palette.Entries[(byte)originalColor].G;
+                b = _palette.Palette.Entries[(byte)originalColor].B;
+                m = (byte)0;
+            }
 
             if (_palette.IsSpecialColour((byte)originalColor))
             {
@@ -131,9 +144,9 @@ namespace Transrender.Rendering
             return new ShaderResult
             {
                 PaletteColour = ditheredTtdColour,
-                R = GetSafeOffsetColour(r, offset * 20),
-                G = GetSafeOffsetColour(g, offset * 20),
-                B = GetSafeOffsetColour(b, offset * 20),
+                R = GetSafeOffsetColour(r, offset * 25),
+                G = GetSafeOffsetColour(g, offset * 25),
+                B = GetSafeOffsetColour(b, offset * 25),
                 M = m, Has32BitData = true
             };
 

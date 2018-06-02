@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
+using Transrender.Util;
 
 
 namespace Transrender.Palettes
@@ -53,6 +54,22 @@ namespace Transrender.Palettes
 
                 return _palette;
             }
+        }
+
+        public byte GetGreyscaleEquivalent(double index)
+        {
+            var range = GetRange(index);
+            var minimum = GetRangeMinimum(range);
+            var maximum = GetRangeMaximum(range);
+            var size = maximum - minimum;
+            return (byte)(0.0 + ((index - (double)minimum) / size) * 255.0);
+        }
+
+        public byte GetRangeMidpoint(double index)
+        {
+            var range = GetRange(index);
+            var midpoint = (GetRangeMaximum(range) + GetRangeMinimum(range)) / 2.0;
+            return (byte)midpoint;
         }
 
         public int GetRange(double index)
@@ -149,11 +166,11 @@ namespace Transrender.Palettes
                     new ShaderResult
                     {
                         PaletteColour = c.PaletteColour,
-                        A = _palette.Entries[c.PaletteColour].A,
+                        A = 0,
                         R = _palette.Entries[c.PaletteColour].R,
                         G = _palette.Entries[c.PaletteColour].G,
                         B = _palette.Entries[c.PaletteColour].B,
-                        M = IsMaskColour(c.PaletteColour) ? (byte)255 : (byte)0,
+                        M = IsMaskColour(c.PaletteColour) ? (byte)200 : (byte)0,
                         Has32BitData = true
                     }).ToList();
             }
@@ -167,21 +184,23 @@ namespace Transrender.Palettes
                     R = (byte)colours.Average(c => c.R),
                     G = (byte)colours.Average(c => c.G),
                     B = (byte)colours.Average(c => c.B),
-                    M = (byte)colours.Average(c => c.M),
+                    M = (colours.Count(c => c.M != 0) >= colours.Count() / 2) ? colours.Select(c => c.M).Mode() : (byte)0,
                     Has32BitData = true
                 };
             }
 
             if (colours.Any(c => GetColourBehaviour(c.PaletteColour) == ColourFlag.TakesPriority))
             {
+                var paletteColour = colours.First(c => GetColourBehaviour(c.PaletteColour) == ColourFlag.TakesPriority).PaletteColour;
+
                 return new ShaderResult
                 {
-                    PaletteColour = colours.First(c => GetColourBehaviour(c.PaletteColour) == ColourFlag.TakesPriority).PaletteColour,
-                    A = (byte)colours.Average(c => c.A),
-                    R = (byte)colours.Average(c => c.R),
-                    G = (byte)colours.Average(c => c.G),
-                    B = (byte)colours.Average(c => c.B),
-                    M = (byte)colours.Average(c => c.M),
+                    PaletteColour = paletteColour,
+                    A = 0,
+                    R = _palette.Entries[paletteColour].R,
+                    G = _palette.Entries[paletteColour].G,
+                    B = _palette.Entries[paletteColour].B,
+                    M = (byte)0,
                     Has32BitData = true
                 };
             }
@@ -201,7 +220,7 @@ namespace Transrender.Palettes
                     R = (byte)colours.Average(c => c.R),
                     G = (byte)colours.Average(c => c.G),
                     B = (byte)colours.Average(c => c.B),
-                    M = (byte)colours.Average(c => c.M),
+                    M = (colours.Count(c => c.M != 0) >= colours.Count() / 2) ? colours.Select(c => c.M).Mode() : (byte)0,
                     Has32BitData = true
                 };
             }

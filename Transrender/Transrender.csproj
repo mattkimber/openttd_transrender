@@ -49,7 +49,6 @@
     <Compile Include="Configuration\RenderTarget.cs" />
     <Compile Include="Configuration\ConfigurationElementCollection.cs" />
     <Compile Include="Configuration\RenderTargetsSection.cs" />
-    <Compile Include="Palettes\GreyScalePalette.cs" />
     <Compile Include="Palettes\IPalette.cs" />
     <Compile Include="Palettes\PaletteFlags.cs" />
     <Compile Include="Palettes\TTDPalette.cs" />
@@ -69,6 +68,7 @@
     <Compile Include="Rendering\Sprite.cs" />
     <Compile Include="Rendering\VoxelScaler.cs" />
     <Compile Include="Rendering\VoxelShader.cs" />
+    <Compile Include="Util\LinqUtil.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
