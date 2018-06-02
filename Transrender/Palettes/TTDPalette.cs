@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.Linq;
 
+
 namespace Transrender.Palettes
 {
     public class TTDPalette : IPalette
@@ -11,6 +12,7 @@ namespace Transrender.Palettes
         private ColorPalette _palette = null;
 
         private HashSet<int> _priorityColours = new HashSet<int> { 15 };
+        private HashSet<int> _maskColours = new HashSet<int> { 81, 82, 83, 84, 85, 86, 87, 199, 200, 201, 202, 203, 204, 205 };
 
         private ColourFlag[] _colourFlags;
 
@@ -22,6 +24,7 @@ namespace Transrender.Palettes
             {
                 ColourFlag f = 0;
                 if (_priorityColours.Contains(i)) f = ColourFlag.TakesPriority;
+                if (_maskColours.Contains(i)) f = ColourFlag.IsMaskColour;
                 _colourFlags[i] = f;
             }
         }
@@ -121,6 +124,11 @@ namespace Transrender.Palettes
             return _colourFlags[colour] == ColourFlag.TakesPriority;
         }
 
+        public bool IsMaskColour(byte colour)
+        {
+            return _colourFlags[colour] == ColourFlag.IsMaskColour;
+        }
+
         private double GetPositionInRange(byte colour)
         {
             var range = GetRange(colour);
@@ -130,30 +138,75 @@ namespace Transrender.Palettes
             return (colour - min) / (max - min);
         }
 
-        public byte GetCombinedColour(List<byte> colours)
+        public ShaderResult GetCombinedColour(List<ShaderResult> colours)
         {
-            if(colours.Select(c => GetRange(c)).Distinct().Count() == 1)
+            colours = colours.Where(c => c != null).ToList();
+
+            if(colours.Any(c => !c.Has32BitData))
             {
-                return (byte)colours.Average(c => c);
+                colours = colours.Select(
+                    c => c.Has32BitData ? c :
+                    new ShaderResult
+                    {
+                        PaletteColour = c.PaletteColour,
+                        A = _palette.Entries[c.PaletteColour].A,
+                        R = _palette.Entries[c.PaletteColour].R,
+                        G = _palette.Entries[c.PaletteColour].G,
+                        B = _palette.Entries[c.PaletteColour].B,
+                        M = IsMaskColour(c.PaletteColour) ? (byte)255 : (byte)0,
+                        Has32BitData = true
+                    }).ToList();
+            }
+            
+            if(colours.Select(c => GetRange(c.PaletteColour)).Distinct().Count() == 1)
+            {
+                return new ShaderResult
+                {
+                    PaletteColour = (byte)colours.Average(c => c.PaletteColour),
+                    A = (byte)colours.Average(c => c.A),
+                    R = (byte)colours.Average(c => c.R),
+                    G = (byte)colours.Average(c => c.G),
+                    B = (byte)colours.Average(c => c.B),
+                    M = (byte)colours.Average(c => c.M),
+                    Has32BitData = true
+                };
             }
 
-            if (colours.Any(c => GetColourBehaviour(c) == ColourFlag.TakesPriority))
+            if (colours.Any(c => GetColourBehaviour(c.PaletteColour) == ColourFlag.TakesPriority))
             {
-                return colours.First(c => GetColourBehaviour(c) == ColourFlag.TakesPriority);
+                return new ShaderResult
+                {
+                    PaletteColour = colours.First(c => GetColourBehaviour(c.PaletteColour) == ColourFlag.TakesPriority).PaletteColour,
+                    A = (byte)colours.Average(c => c.A),
+                    R = (byte)colours.Average(c => c.R),
+                    G = (byte)colours.Average(c => c.G),
+                    B = (byte)colours.Average(c => c.B),
+                    M = (byte)colours.Average(c => c.M),
+                    Has32BitData = true
+                };
             }
 
-            if (colours.Any(c => c != 0))
+            if (colours.Any(c => c.PaletteColour != 0))
             {
-                var colour = colours.Where(c => c != 0).GroupBy(c => c).OrderByDescending(c => c.Count()).First().First();
-                var averageRangePosition = colours.Where(c => c != 0).Average(c => GetPositionInRange(c));
-                var range = GetRange(colour);
+                var colour = colours.Where(c => c.PaletteColour != 0).GroupBy(c => c.PaletteColour).OrderByDescending(c => c.Count()).First().First();
+                var averageRangePosition = colours.Where(c => c.PaletteColour != 0).Average(c => GetPositionInRange(c.PaletteColour));
+                var range = GetRange(colour.PaletteColour);
                 var min = GetRangeMinimum(range);
                 var max = GetRangeMaximum(range);
 
-                return (byte)(min + ((max - min) * averageRangePosition));
+                return new ShaderResult
+                {
+                    PaletteColour = (byte)(min + ((max - min) * averageRangePosition)),
+                    A = (byte)colours.Average(c => c.A),
+                    R = (byte)colours.Average(c => c.R),
+                    G = (byte)colours.Average(c => c.G),
+                    B = (byte)colours.Average(c => c.B),
+                    M = (byte)colours.Average(c => c.M),
+                    Has32BitData = true
+                };
             }
 
-            return 0;
+            return new ShaderResult { PaletteColour = 0, Has32BitData = false };
         }
 
         // Palette indexes where TTD ranges start and end

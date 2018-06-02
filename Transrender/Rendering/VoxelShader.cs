@@ -104,142 +104,59 @@ namespace Transrender.Rendering
             return _voxels[x][y][z];
         }
 
-        public byte ShadePixel(int x, int y, int z, int[][] shadowVector)
+        public ShaderResult ShadePixel(int x, int y, int z, int[][] shadowVector)
         {
             var originalColor = (double)GetRawPixel(x,y, z);
+            var r = _palette.Palette.Entries[(byte)originalColor].R;
+            var g = _palette.Palette.Entries[(byte)originalColor].G;
+            var b = _palette.Palette.Entries[(byte)originalColor].B;
+            var m = _palette.IsMaskColour((byte)originalColor) ? (byte)255 : (byte)0;
 
-            if(_palette.IsSpecialColour((byte)originalColor))
+            if (_palette.IsSpecialColour((byte)originalColor))
             {
-                return (byte)originalColor;
+                return new ShaderResult
+                {
+                    PaletteColour = (byte)originalColor,
+                    R = r, G = g, B = b, A = 0, M = m, Has32BitData = true
+                };
             }
 
             var finalColor = originalColor;
 
-            finalColor += 2.5;
-            finalColor += GetAmbientOcclusionOffset(x, y, z);
-            finalColor += GetShadowOffset(x, y, z, shadowVector);
-            return GetDitheredColour(originalColor, finalColor, true);
+            var offset = 2.5 + GetAmbientOcclusionOffset(x, y, z) + GetShadowOffset(x, y, z, shadowVector);
+            finalColor += offset;
+
+            var ditheredTtdColour = GetDitheredColour(originalColor, finalColor, true);
+
+            return new ShaderResult
+            {
+                PaletteColour = ditheredTtdColour,
+                R = GetSafeOffsetColour(r, offset * 20),
+                G = GetSafeOffsetColour(g, offset * 20),
+                B = GetSafeOffsetColour(b, offset * 20),
+                M = m, Has32BitData = true
+            };
+
+        }
+
+        private byte GetSafeOffsetColour(byte value, double offset)
+        {
+            if((double)value + offset > 255)
+            {
+                return 255;
+            }
+
+            if((double)value + offset < 0)
+            {
+                return 0;
+            }
+
+            return (byte)(value + offset);
         }
 
         public bool IsTransparent(int x, int y, int z)
         {
             return GetRawPixel(x,y, z) == 0;
         }
-
-        /*
-         * This stuff is needed for packing multiple objects together, but not right now
-        public VoxelObject Composite(VoxelObject input, int xOffset, int yOffset, int zOffset, string pngFile)
-        {
-            if (xOffset >= Width || yOffset >= Height || zOffset >= Depth)
-            {
-                return this;
-            }
-
-            var voxelObject = new VoxelObject { Width = Width, Height = Height, Depth = Depth, PngFile = pngFile };
-
-            var maxX = (xOffset + input.Width) > Width ? Width : input.Width + xOffset;
-            var maxY = (yOffset + input.Depth) > Depth ? Depth : input.Depth + yOffset;
-            var maxZ = (zOffset + input.Height) > Height ? Height : input.Height + zOffset;
-
-            voxelObject.Pixels = new byte[Width][][];
-
-            for (int x = 0; x < Width; x++)
-            {
-                voxelObject.Pixels[x] = new byte[Depth][];
-
-                for (int y = 0; y < Depth; y++)
-                {
-                    voxelObject.Pixels[x][y] = new byte[Height];
-
-                    for (int z = 0; z < Height; z++)
-                    {
-                        if (Pixels[x][y][z] == 0 &&
-                           x >= xOffset && y >= yOffset && z >= zOffset
-                           && x < maxX && y < maxY && z < maxZ)
-                        {
-                            voxelObject.Pixels[x][y][z] = input.Pixels[x - xOffset][y - yOffset][z - zOffset];
-                        }
-                        else
-                        {
-                            voxelObject.Pixels[x][y][z] = Pixels[x][y][z];
-                        }
-                    }
-                }
-            }
-
-            return voxelObject;
-        }
-
-        public VoxelObject Scale(double factor)
-        {
-            return Scale(factor, factor, factor);
-        }
-
-        public VoxelObject Pad(int height, int depth)
-        {
-            if (this.Depth > depth || this.Height > height)
-            {
-                throw new ApplicationException("Input voxel object is larger than the maximum allowed.");
-            }
-
-            var paddedVoxels = new VoxelObject { Width = Width, Height = height, Depth = depth, PngFile = PngFile };
-
-            paddedVoxels.Pixels = new byte[paddedVoxels.Width][][];
-
-            var depthMargin = (depth - Depth) / 2;
-            var heightMargin = (height - Height);
-
-            for (int x = 0; x < Width; x++)
-            {
-                paddedVoxels.Pixels[x] = new byte[paddedVoxels.Depth][];
-
-                for (int y = 0; y < depth; y++)
-                {
-                    paddedVoxels.Pixels[x][y] = new byte[paddedVoxels.Height];
-
-                    for (int z = 0; z < height; z++)
-                    {
-                        if (y >= depthMargin && y < Depth + depthMargin && z >= heightMargin && z < Height + heightMargin)
-                        {
-                            paddedVoxels.Pixels[x][y][z] = Pixels[x][y - depthMargin][z - heightMargin];
-                        }
-                    }
-                }
-            }
-
-            return paddedVoxels;
-        }
-
-        public VoxelObject Scale(double xFactor, double yFactor, double zFactor)
-        {
-            var scaledVoxels = new VoxelObject
-            {
-                Width = (int)(Width * xFactor),
-                Height = (int)(Height * zFactor),
-                Depth = (int)(Depth * yFactor),
-                PngFile = PngFile
-            };
-
-            scaledVoxels.Pixels = new byte[scaledVoxels.Width][][];
-
-            for (int x = 0; x < (int)(Width * xFactor); x++)
-            {
-                scaledVoxels.Pixels[x] = new byte[scaledVoxels.Depth][];
-
-                for (int y = 0; y < (int)(Depth * yFactor); y++)
-                {
-                    scaledVoxels.Pixels[x][y] = new byte[scaledVoxels.Height];
-
-                    for (int z = 0; z < (int)(Height * zFactor); z++)
-                    {
-                        scaledVoxels.Pixels[x][y][z] = Pixels[(int)((x + 0.5) / xFactor)][(int)((y + 0.5) / yFactor)][(int)((z + 0.5) / zFactor)];
-                    }
-                }
-            }
-
-            return scaledVoxels;
-        }
-
-    */
     }
 }

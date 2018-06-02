@@ -9,7 +9,8 @@ namespace Transrender.Palettes
         int GetRange(double index);
         double GetRangeMaximum(int rangeIndex);
 
-        byte GetCombinedColour(List<byte> colours);
+        ShaderResult GetCombinedColour(List<ShaderResult> colours);
         bool IsSpecialColour(byte colour);
+        bool IsMaskColour(byte colour);
     }
 }

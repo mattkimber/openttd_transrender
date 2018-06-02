@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Transrender.Palettes;
 using Transrender.Projector;
 
 namespace Transrender.Rendering
@@ -22,7 +23,7 @@ namespace Transrender.Rendering
             _projector = projector;
         }
 
-        public byte[][] GetPixels()
+        public ShaderResult[][] GetPixels()
         {
             var flipX = _projection <= 2 || _projection >= 6;
             var flipY = _projection >= 3;
@@ -34,10 +35,10 @@ namespace Transrender.Rendering
 
             var step = 1.0 / (renderScale);
 
-            var result = new byte[width][];
+            var result = new ShaderResult[width][];
             for (var i = 0; i < width; i++)
             {
-                result[i] = new byte[height];
+                result[i] = new ShaderResult[height];
             }
 
             for (var x = flipX ? (double)_shader.Width - 1 : 0.0; flipX ? x >= 0 : x < _shader.Width; x += (flipX ? -step : step))

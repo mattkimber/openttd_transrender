@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Transrender.Palettes;
 using Transrender.Projector;
 
 namespace Transrender.Rendering
@@ -13,7 +14,7 @@ namespace Transrender.Rendering
         public int Height;
         public int Width;
         
-        public List<byte>[][] PixelLists;
+        public List<ShaderResult>[][] PixelLists;
 
         private ISpriteRenderer _renderer;
 
@@ -55,20 +56,20 @@ namespace Transrender.Rendering
             }
         }
 
-        private List<byte>[][] GetPixelLists(int projection, byte[][] pixels)
+        private List<ShaderResult>[][] GetPixelLists(int projection, ShaderResult[][] pixels)
         {
             var renderFactor = BitmapGeometry.RenderScale;
 
             var width = pixels.Length / renderFactor + 1;
             var height = pixels[0].Length / renderFactor + 1;
 
-            var list = new List<byte>[width][];
+            var list = new List<ShaderResult>[width][];
 
             for (var x = 0; x < pixels.Length; x++)
             {
                 if (list[x / renderFactor] == null)
                 {
-                    list[x / renderFactor] = new List<byte>[height];
+                    list[x / renderFactor] = new List<ShaderResult>[height];
                 }
 
                 for (var y = 0; y < pixels[x].Length; y++)
@@ -77,7 +78,7 @@ namespace Transrender.Rendering
 
                     if (list[x / renderFactor][y / renderFactor] == null)
                     {
-                        list[x / renderFactor][y / renderFactor] = new List<byte>();
+                        list[x / renderFactor][y / renderFactor] = new List<ShaderResult>();
                     }
 
                     list[x / renderFactor][y / renderFactor].Add(source);

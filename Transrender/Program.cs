@@ -30,7 +30,7 @@ namespace Transrender
 
                 foreach(var target in targets.Targets)
                 {
-                    var renderer = new BitmapRenderer(shader, projector, palette, target.Scale);
+                    var renderer = new BitmapRenderer(shader, projector, palette, target.Scale, target.Bpp);
 
                     if(!Directory.Exists(target.OutputFolder))
                     {
@@ -39,9 +39,9 @@ namespace Transrender
 
                     var pathElements = file.Split('\\');
                     var path = string.Join("\\", pathElements.Take(pathElements.Length - 1)) + "\\" + target.OutputFolder + "\\";
-                    var fileName = path + pathElements.Last() + ".png";
+                    var fileName = path + pathElements.Last();
 
-                    if (overwrite || !File.Exists(fileName))
+                    if (overwrite || !File.Exists(fileName + ".png"))
                     {
                         renderer.RenderToFile(fileName);
                     }

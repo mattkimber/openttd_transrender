@@ -10,5 +10,6 @@ namespace Transrender.Palettes
     {
         None = 0,
         TakesPriority = 1,
+        IsMaskColour = 2
     }
 }

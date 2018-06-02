@@ -15,20 +15,22 @@ namespace Transrender.Rendering
         private IPalette _palette;
         private BitmapGeometry _geometry;
         private double _scale;
-
+        private int _bitsPerPixel;
+        
         private const int _renderScale = 2;
 
-        public BitmapRenderer(VoxelShader shader, IProjector projector, IPalette palette, double scale = 1.0)
+        public BitmapRenderer(VoxelShader shader, IProjector projector, IPalette palette, double scale = 1.0, int bitsPerPixel = 8)
         {
             _shader = shader;
             _projector = projector;
             _palette = palette;
             _scale = scale;
+            _bitsPerPixel = bitsPerPixel;
             _geometry = new BitmapGeometry(scale);
         }
 
         private void RenderProjection(
-            byte[] pixels,
+            IPixelBuffer buffer,
             int xOffset,
             int yOffset,
             int stride,
@@ -48,36 +50,37 @@ namespace Transrender.Rendering
                         var colour = _palette.GetCombinedColour(sprite.PixelLists[x][y]);
                         var destinationPixel = finalXOffset + x + ((finalYOffset + y) * stride);
 
-                        if (destinationPixel < pixels.Length && (finalXOffset + x) >= 0 && (finalYOffset + y) >= 0 && colour != 0)
+                        if (destinationPixel < buffer.GetLength() && (finalXOffset + x) >= 0 && (finalYOffset + y) >= 0 && colour.PaletteColour != 0)
                         {
-                            pixels[destinationPixel] = colour;
+                            buffer.SetPixelToColour(destinationPixel, colour);
                         }
                     }
                 }
             }
         }
         
-        private static void RenderBox(byte[] pixels, int x1, int y1, int width, int height, int stride)
+        private static void RenderBox(IPixelBuffer pixelBuffer, int x1, int y1, int width, int height, int stride)
         {
             for (var x = x1; x < x1 + width; x++)
             {
                 for (var y = y1; y < y1 + height; y++)
                 {
-                    pixels[x + (y * stride)] = 0;
+                    pixelBuffer.SetPixelToColour(x + (y * stride), ShaderResult.Transparent());
                 }
             }
         }
 
-        private void RenderVoxelObject(Bitmap bitmap)
+        private void RenderVoxelObject(Bitmap bitmap, Bitmap mask = null)
         {
-            var bitmapRectangle = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-            var bitmapData = bitmap.LockBits(bitmapRectangle, ImageLockMode.WriteOnly, PixelFormat.Format8bppIndexed);
 
-            var pixels = new byte[bitmap.Width * bitmap.Height];
+            IPixelBuffer pixelBuffer;
+            
+            pixelBuffer = _bitsPerPixel == 8 ? (IPixelBuffer)(new PixelBuffer8Bit()) : (IPixelBuffer)(new PixelBuffer32Bit());
+            pixelBuffer.CreateBuffer(bitmap.Width * bitmap.Height);
 
-            for (int i = 0; i < pixels.Length; i++)
+            for (int i = 0; i < pixelBuffer.GetLength(); i++)
             {
-                pixels[i] = 255;
+                pixelBuffer.SetPixelToColour(i, ShaderResult.White());
             }
 
             for (int i = 0; i < 8; i ++)
@@ -85,14 +88,17 @@ namespace Transrender.Rendering
                 var x = _geometry.GetSpriteLeft(i);
                 var width = _geometry.GetSpriteWidth(i);
                 var height = _geometry.GetSpriteHeight(i);
-                RenderBox(pixels, x, 0, width, height, bitmap.Width);
-                RenderProjection(pixels, x, 0, bitmap.Width, i);
+                RenderBox(pixelBuffer, x, 0, width, height, bitmap.Width);
+                RenderProjection(pixelBuffer, x, 0, bitmap.Width, i);
             }
 
 
-            Marshal.Copy(pixels, 0, bitmapData.Scan0, pixels.Length);
+            pixelBuffer.CopyToBitmap(bitmap);
 
-            bitmap.UnlockBits(bitmapData);
+            if(mask != null)
+            {
+                pixelBuffer.CopyToMask(mask);
+            }
         }
 
         public void RenderToFile(string fileName)
@@ -100,11 +106,26 @@ namespace Transrender.Rendering
             var width = _geometry.GetTotalWidth();
             var height = _geometry.GetTotalHeight();
 
-            using (var b = new Bitmap(width, height, PixelFormat.Format8bppIndexed))
+            if (_bitsPerPixel == 8)
             {
-                b.Palette = _palette.Palette;
-                RenderVoxelObject(b);
-                b.Save(fileName, ImageFormat.Png);
+                using (var b = new Bitmap(width, height, PixelFormat.Format8bppIndexed))
+                {
+                    b.Palette = _palette.Palette;
+                    RenderVoxelObject(b);
+                    b.Save(fileName + ".png", ImageFormat.Png);
+                }
+            }
+            else
+            {
+                var b = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+                var m = new Bitmap(width, height, PixelFormat.Format8bppIndexed);
+
+                m.Palette = new GreyScalePalette().Palette;
+
+                RenderVoxelObject(b, m);
+ 
+                b.Save(fileName + ".png", ImageFormat.Png);
+                m.Save(fileName + ".mask.png", ImageFormat.Png);
             }
         }
     }

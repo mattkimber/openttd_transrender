@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Transrender</RootNamespace>
     <AssemblyName>Transrender</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -48,6 +49,7 @@
     <Compile Include="Configuration\RenderTarget.cs" />
     <Compile Include="Configuration\ConfigurationElementCollection.cs" />
     <Compile Include="Configuration\RenderTargetsSection.cs" />
+    <Compile Include="Palettes\GreyScalePalette.cs" />
     <Compile Include="Palettes\IPalette.cs" />
     <Compile Include="Palettes\PaletteFlags.cs" />
     <Compile Include="Palettes\TTDPalette.cs" />
@@ -57,9 +59,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Rendering\BitmapGeometry.cs" />
     <Compile Include="Rendering\BitmapRenderer.cs" />
+    <Compile Include="Rendering\IPixelBuffer.cs" />
     <Compile Include="Rendering\ISpriteRenderer.cs" />
     <Compile Include="Rendering\PainterSpriteRenderer.cs" />
+    <Compile Include="Rendering\PixelBuffer32Bit.cs" />
+    <Compile Include="Rendering\PixelBuffer8Bit.cs" />
     <Compile Include="Rendering\RaycastRenderer.cs" />
+    <Compile Include="Palettes\ShaderResult.cs" />
     <Compile Include="Rendering\Sprite.cs" />
     <Compile Include="Rendering\VoxelScaler.cs" />
     <Compile Include="Rendering\VoxelShader.cs" />

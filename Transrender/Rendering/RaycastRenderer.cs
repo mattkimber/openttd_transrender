@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Transrender.Palettes;
 using Transrender.Projector;
 
 namespace Transrender.Rendering
@@ -35,7 +36,7 @@ namespace Transrender.Rendering
 
         }
 
-        public byte[][] GetPixels()
+        public ShaderResult[][] GetPixels()
         {
             var scale = _geometry.Scale * BitmapGeometry.RenderScale;
             var width = (int)(64 * scale);
@@ -70,7 +71,7 @@ namespace Transrender.Rendering
             return MultiplyByRotationMatrix(new[] { 0.0, 0.5, 0.25 });
         }
 
-        private byte CastRay(double x, double y)
+        private ShaderResult CastRay(double x, double y)
         {
             var vector = GetRayVector();
 
@@ -101,7 +102,7 @@ namespace Transrender.Rendering
                 position = Add(position, vector);
             }
 
-            return 0;
+            return ShaderResult.Transparent();
         }
     
         private double[] Add(double[] input1, double[] input2)
@@ -129,12 +130,12 @@ namespace Transrender.Rendering
             };
         }
 
-        private byte[][] GetInitialisedArray(int width, int height)
+        private ShaderResult[][] GetInitialisedArray(int width, int height)
         {
-            var result = new byte[width][];
+            var result = new ShaderResult[width][];
             for (var i = 0; i < width; i++)
             {
-                result[i] = new byte[height];
+                result[i] = new ShaderResult[height];
             }
 
             return result;

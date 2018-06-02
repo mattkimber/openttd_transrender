@@ -9,6 +9,20 @@ namespace Transrender.Configuration
 {
     public class RenderTarget : ConfigurationElement
     {
+        [ConfigurationProperty(name: "bpp", DefaultValue = 8)]
+        public int Bpp
+        {
+            get
+            {
+                return this["bpp"] != null ? (int)this["bpp"] : 8;
+            }
+            set
+            {
+                this["bpp"] = value;
+            }
+        }
+
+
         [ConfigurationProperty(name:"scale")]
         public float Scale
         {
