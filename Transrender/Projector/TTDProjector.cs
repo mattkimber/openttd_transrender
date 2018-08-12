@@ -53,11 +53,11 @@ namespace Transrender.Projector
         };
 
         public Func<double, double, double, int, int, int, double>[] YProjections = {
-            (x, y, z, width, height, depth) => (((width - x - 1) / 2.0) + z),
+            (x, y, z, width, height, depth) => (((width - x - 1) / 2.25) + z),
             (x, y, z, width, height, depth) => ((width / 4.0) - (x / 4.0) + (y / 4.0) + z),
             (x, y, z, width, height, depth) => ((y / 4.0) + z),
             (x, y, z, width, height, depth) => (((height / 4.0) + (x / 4.0)-((height - y - 1) / 4.0)) + z),
-            (x, y, z, width, height, depth) => ((x / 2.0) + z),
+            (x, y, z, width, height, depth) => ((x / 2.25) + z),
             (x, y, z, width, height, depth) => ((width / 4.0) - ((width - x - 1) / 4.0) + ((depth - y - 1) / 4.0) + z),
             (x, y, z, width, height, depth) => (((depth - y - 1) / 4.0) + z),
             (x, y, z, width, height, depth) => ((depth / 4.0) + ((width - x - 1) / 4.0) - (y / 4.0) + z),

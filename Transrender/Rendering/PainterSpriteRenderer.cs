@@ -33,6 +33,17 @@ namespace Transrender.Rendering
             var width = (int)(_geometry.GetSpriteWidth(_projection) * (renderScale / _geometry.Scale));
             var height = (int)(_geometry.GetSpriteHeight(_projection) * (renderScale / _geometry.Scale));
 
+            if(_projection == 0 || _projection == 4)
+            {
+                height += (int)(4 * (renderScale / _geometry.Scale));
+            }
+
+            if(_shader.Width > 64)
+            {
+                width = width * 2;
+                height = height * 2;
+            }
+
             var step = 1.0 / (renderScale);
 
             var result = new ShaderResult[width][];

@@ -13,7 +13,9 @@ namespace Transrender.Palettes
         private ColorPalette _palette = null;
 
         private HashSet<int> _priorityColours = new HashSet<int> { 15 };
-        private HashSet<int> _maskColours = new HashSet<int> { 81, 82, 83, 84, 85, 86, 87, 199, 200, 201, 202, 203, 204, 205 };
+        private HashSet<int> _maskColours = new HashSet<int> { 80, 81, 82, 83, 84, 85, 86, 87, 199, 200, 201, 202, 203, 204, 205 };
+
+        private int[] _grayscaleCache = new int[256];
 
         private ColourFlag[] _colourFlags;
 
@@ -27,6 +29,7 @@ namespace Transrender.Palettes
                 if (_priorityColours.Contains(i)) f = ColourFlag.TakesPriority;
                 if (_maskColours.Contains(i)) f = ColourFlag.IsMaskColour;
                 _colourFlags[i] = f;
+                _grayscaleCache[i] = -1;
             }
         }
 
@@ -56,13 +59,22 @@ namespace Transrender.Palettes
             }
         }
 
-        public byte GetGreyscaleEquivalent(double index)
+        public byte GetGreyscaleEquivalent(byte index)
         {
+            if(_grayscaleCache[index] != -1)
+            {
+                return (byte)_grayscaleCache[index];
+            }
+
             var range = GetRange(index);
             var minimum = GetRangeMinimum(range);
             var maximum = GetRangeMaximum(range);
             var size = maximum - minimum;
-            return (byte)(0.0 + ((index - (double)minimum) / size) * 255.0);
+            var equivalent = (byte)(0.0 + ((index - (double)minimum) / size) * 255.0);
+
+            _grayscaleCache[index] = equivalent;
+
+            return equivalent;
         }
 
         public byte GetRangeMidpoint(double index)

@@ -39,8 +39,8 @@ namespace Transrender.Rendering
         public ShaderResult[][] GetPixels()
         {
             var scale = _geometry.Scale * BitmapGeometry.RenderScale;
-            var width = (int)(64 * scale);
-            var height = (int)(40 * scale);
+            var width = _shader.Width > 64 ? (int)(128 * scale) : (int)(64 * scale);
+            var height = _shader.Width > 64 ? (int)(80 * scale) : (int)(40 * scale);
 
             var result = GetInitialisedArray(width, height);
 

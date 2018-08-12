@@ -66,11 +66,11 @@ namespace Transrender.Rendering
         {
             var occlusionCount = 0;
 
-            for (var i = x > 1 ? -1 : 0; i < (x >= (Width - 2) ? Width - x : 2); i++)
+            for (var i = x > 1 ? -1 : 0; i < (x >= (Width - 2) ? Width - x : 2); i+=2)
             {
-                for (var j = y > 1 ? -1 : 0; j < (y >= (Depth - 2) ? Depth - y : 2); j++)
+                for (var j = y > 1 ? -1 : 0; j < (y >= (Depth - 2) ? Depth - y : 2); j+=2)
                 {
-                    for (var k = z > 1 ? -1 : 0; k < (z >= (Height - 2) ? Height - z : 2); k++)
+                    for (var k = z > 1 ? -1 : 0; k < (z >= (Height - 2) ? Height - z : 2); k+=2)
                     {
                         if (GetRawPixel(x + i,y + j, z + k) != 0)
                         {
@@ -80,7 +80,7 @@ namespace Transrender.Rendering
                 }
             }
 
-            return occlusionCount / 18.0;
+            return occlusionCount / 4.0;
         }
 
         private double GetShadowOffset(int x, int y, int z, int[][] shadowVector)
@@ -106,35 +106,35 @@ namespace Transrender.Rendering
 
         public ShaderResult ShadePixel(int x, int y, int z, int[][] shadowVector)
         {
-            var originalColor = (double)GetRawPixel(x,y, z);
+            var originalColor = GetRawPixel(x,y, z);
 
             byte r, g, b, m;
 
-            if (_palette.IsMaskColour((byte)originalColor))
+            if (_palette.IsMaskColour(originalColor))
             {
                 r = _palette.GetGreyscaleEquivalent(originalColor);
                 g = _palette.GetGreyscaleEquivalent(originalColor);
                 b = _palette.GetGreyscaleEquivalent(originalColor);
-                m = _palette.IsMaskColour((byte)originalColor) ? _palette.GetRangeMidpoint(originalColor) : (byte)0;
+                m = _palette.IsMaskColour(originalColor) ? _palette.GetRangeMidpoint(originalColor) : (byte)0;
             }
             else
             {
-                r = _palette.Palette.Entries[(byte)originalColor].R;
-                g = _palette.Palette.Entries[(byte)originalColor].G;
-                b = _palette.Palette.Entries[(byte)originalColor].B;
-                m = (byte)0;
+                r = _palette.Palette.Entries[originalColor].R;
+                g = _palette.Palette.Entries[originalColor].G;
+                b = _palette.Palette.Entries[originalColor].B;
+                m = 0;
             }
 
-            if (_palette.IsSpecialColour((byte)originalColor))
+            if (_palette.IsSpecialColour(originalColor))
             {
                 return new ShaderResult
                 {
-                    PaletteColour = (byte)originalColor,
+                    PaletteColour = originalColor,
                     R = r, G = g, B = b, A = 0, M = m, Has32BitData = true
                 };
             }
 
-            var finalColor = originalColor;
+            var finalColor = (double)originalColor;
 
             var offset = 2.5 + GetAmbientOcclusionOffset(x, y, z) + GetShadowOffset(x, y, z, shadowVector);
             finalColor += offset;

@@ -9,7 +9,7 @@ namespace Transrender.Palettes
         int GetRange(double index);
         double GetRangeMaximum(int rangeIndex);
         byte GetRangeMidpoint(double index);
-        byte GetGreyscaleEquivalent(double index);
+        byte GetGreyscaleEquivalent(byte index);
 
         ShaderResult GetCombinedColour(List<ShaderResult> colours);
         bool IsSpecialColour(byte colour);

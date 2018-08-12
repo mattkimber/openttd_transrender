@@ -18,9 +18,12 @@ namespace Transrender.Rendering
 
         private ISpriteRenderer _renderer;
 
+        private bool _isDoubleSize;
+
         public Sprite(int projection, BitmapGeometry geometry, VoxelShader shader, IProjector projector)
         {
             SetRenderer(projection, geometry, shader, projector);
+            _isDoubleSize = shader.Width > 64;
 
             var pixels = _renderer.GetPixels();
 
@@ -31,6 +34,12 @@ namespace Transrender.Rendering
                     for (var z = 0; z <= shader.Height; z+= shader.Height)
                     {
                         var screenSpace = projector.GetProjectedValues(x, y, z, projection, geometry.Scale);
+
+                        if(_isDoubleSize)
+                        {
+                            screenSpace[0] = screenSpace[0] / 2;
+                            screenSpace[1] = screenSpace[1] / 2;
+                        }
 
                         Width = screenSpace[0] > Width ? screenSpace[0] : Width;
                         Height = screenSpace[1] > Height ? screenSpace[1] : Height;
@@ -59,6 +68,11 @@ namespace Transrender.Rendering
         private List<ShaderResult>[][] GetPixelLists(int projection, ShaderResult[][] pixels)
         {
             var renderFactor = BitmapGeometry.RenderScale;
+
+            if(_isDoubleSize)
+            {
+                renderFactor = renderFactor * 2;
+            }
 
             var width = pixels.Length / renderFactor + 1;
             var height = pixels[0].Length / renderFactor + 1;
