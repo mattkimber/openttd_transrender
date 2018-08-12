@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Transrender.Palettes;
+using Transrender.Projector;
 
 namespace Transrender.Rendering
 {
@@ -8,6 +9,8 @@ namespace Transrender.Rendering
     {
         private IPalette _palette;
         private byte[][][] _voxels;
+        private double?[][][] _occlusionCache;
+        private ShaderResult[][][][] _shaderCache;
 
         public int Width { get; set; }    
 
@@ -26,9 +29,46 @@ namespace Transrender.Rendering
             Depth = voxelData[0].Length;
             Height = voxelData[0][0].Length;
 
+            BuildOcclusionCache();
+            BuildShaderCache();
+
             _palette = palette;
             _voxels = voxelData;
         }
+
+        private void BuildOcclusionCache()
+        {
+            _occlusionCache = new double?[Width][][];
+
+            for (var i = 0; i < Width; i++)
+            {
+                _occlusionCache[i] = new double?[Depth][];
+                for (var j = 0; j < Depth; j++)
+                {
+                    _occlusionCache[i][j] = new double?[Height];
+                }
+            }
+        }
+
+
+        private void BuildShaderCache()
+        {
+            _shaderCache = new ShaderResult[8][][][];
+
+            for (var i = 0; i < 8; i++)
+            {
+                _shaderCache[i] = new ShaderResult[Width][][];
+                for (var j = 0; j < Width; j++)
+                {
+                    _shaderCache[i][j] = new ShaderResult[Depth][];
+                    for (var k = 0; k < Depth; k++)
+                    {
+                        _shaderCache[i][j][k] = new ShaderResult[Height];
+                    }
+                }
+            }
+        }
+
 
         private byte GetDitheredColour(double originalColor, double finalColor, bool dither)
         {
@@ -64,30 +104,36 @@ namespace Transrender.Rendering
 
         private double GetAmbientOcclusionOffset(int x, int y, int z)
         {
-            var occlusionCount = 0;
-
-            for (var i = x > 1 ? -1 : 0; i < (x >= (Width - 2) ? Width - x : 2); i+=2)
+            if (_occlusionCache[x][y][z] == null)
             {
-                for (var j = y > 1 ? -1 : 0; j < (y >= (Depth - 2) ? Depth - y : 2); j+=2)
+
+                var occlusionCount = 0;
+
+                for (var i = x > 1 ? -1 : 0; i < (x >= (Width - 2) ? Width - x : 2); i += 2)
                 {
-                    for (var k = z > 1 ? -1 : 0; k < (z >= (Height - 2) ? Height - z : 2); k+=2)
+                    for (var j = y > 1 ? -1 : 0; j < (y >= (Depth - 2) ? Depth - y : 2); j += 2)
                     {
-                        if (GetRawPixel(x + i,y + j, z + k) != 0)
+                        for (var k = z > 1 ? -1 : 0; k < (z >= (Height - 2) ? Height - z : 2); k += 2)
                         {
-                            occlusionCount--;
+                            if (GetRawPixel(x + i, y + j, z + k) != 0)
+                            {
+                                occlusionCount--;
+                            }
                         }
                     }
                 }
+
+                _occlusionCache[x][y][z] = occlusionCount / 4.0;
             }
 
-            return occlusionCount / 4.0;
+            return (double)_occlusionCache[x][y][z];
         }
 
-        private double GetShadowOffset(int x, int y, int z, int[][] shadowVector)
+        private double GetShadowOffset(int x, int y, int z, ShadowVector shadowVector)
         {
             var offset = 0.0;
 
-            offset -= shadowVector
+            offset -= shadowVector.Vectors
                 .Where(t => x + t[0] >= 0 && x + t[0] < Width && y + t[1] >= 0 && y + t[1] < Depth && z + t[2] >= 0 && z + t[2] < Height)
                 .Count(t => GetRawPixel(x + t[0],y + t[1],z + t[2]) != 0);
 
@@ -104,18 +150,28 @@ namespace Transrender.Rendering
             return _voxels[x][y][z];
         }
 
-        public ShaderResult ShadePixel(int x, int y, int z, int[][] shadowVector)
+        public ShaderResult ShadePixel(int x, int y, int z, ShadowVector shadowVector)
         {
+            if(_shaderCache[shadowVector.Id][x][y][z] != null)
+            {
+                return _shaderCache[shadowVector.Id][x][y][z];
+            }
+
             var originalColor = GetRawPixel(x,y, z);
 
             byte r, g, b, m;
 
             if (_palette.IsMaskColour(originalColor))
             {
+                var midpoint = _palette.GetRangeMidpoint(originalColor);
+                var diff = midpoint - originalColor;
+
                 r = _palette.GetGreyscaleEquivalent(originalColor);
                 g = _palette.GetGreyscaleEquivalent(originalColor);
                 b = _palette.GetGreyscaleEquivalent(originalColor);
-                m = _palette.IsMaskColour(originalColor) ? _palette.GetRangeMidpoint(originalColor) : (byte)0;
+                //m = _palette.IsMaskColour(originalColor) ? _palette.GetRangeMidpoint(originalColor) : (byte)0;
+                m = (byte)(originalColor + (diff / 2));
+
             }
             else
             {
@@ -136,12 +192,14 @@ namespace Transrender.Rendering
 
             var finalColor = (double)originalColor;
 
-            var offset = 2.5 + GetAmbientOcclusionOffset(x, y, z) + GetShadowOffset(x, y, z, shadowVector);
+            var offset = 2.5 + GetAmbientOcclusionOffset(x, y, z);
+                
+            offset += GetShadowOffset(x, y, z, shadowVector);
             finalColor += offset;
 
             var ditheredTtdColour = GetDitheredColour(originalColor, finalColor, true);
 
-            return new ShaderResult
+            var result = new ShaderResult
             {
                 PaletteColour = ditheredTtdColour,
                 R = GetSafeOffsetColour(r, offset * 25),
@@ -149,6 +207,9 @@ namespace Transrender.Rendering
                 B = GetSafeOffsetColour(b, offset * 25),
                 M = m, Has32BitData = true
             };
+
+            _shaderCache[shadowVector.Id][x][y][z] = result;
+            return result;
 
         }
 

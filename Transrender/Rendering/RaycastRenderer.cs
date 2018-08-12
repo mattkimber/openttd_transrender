@@ -11,7 +11,7 @@ namespace Transrender.Rendering
     public class RaycastRenderer : ISpriteRenderer
     {
         private VoxelShader _shader;
-        private int[][] _shadowVector;
+        private ShadowVector _shadowVector;
         private BitmapGeometry _geometry;
         private int _projection;
 

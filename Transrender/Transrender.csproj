@@ -65,6 +65,7 @@
     <Compile Include="Rendering\PixelBuffer8Bit.cs" />
     <Compile Include="Rendering\RaycastRenderer.cs" />
     <Compile Include="Palettes\ShaderResult.cs" />
+    <Compile Include="Projector\ShadowVector.cs" />
     <Compile Include="Rendering\Sprite.cs" />
     <Compile Include="Rendering\VoxelScaler.cs" />
     <Compile Include="Rendering\VoxelShader.cs" />

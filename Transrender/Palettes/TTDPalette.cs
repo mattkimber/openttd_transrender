@@ -16,6 +16,7 @@ namespace Transrender.Palettes
         private HashSet<int> _maskColours = new HashSet<int> { 80, 81, 82, 83, 84, 85, 86, 87, 199, 200, 201, 202, 203, 204, 205 };
 
         private int[] _grayscaleCache = new int[256];
+        private int[] _rangeBoundaryCache = new int[256];
 
         private ColourFlag[] _colourFlags;
 
@@ -30,7 +31,9 @@ namespace Transrender.Palettes
                 if (_maskColours.Contains(i)) f = ColourFlag.IsMaskColour;
                 _colourFlags[i] = f;
                 _grayscaleCache[i] = -1;
+                _rangeBoundaryCache[i] = -1;
             }
+
         }
 
         [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.Synchronized)]
@@ -70,7 +73,7 @@ namespace Transrender.Palettes
             var minimum = GetRangeMinimum(range);
             var maximum = GetRangeMaximum(range);
             var size = maximum - minimum;
-            var equivalent = (byte)(0.0 + ((index - (double)minimum) / size) * 255.0);
+            var equivalent = (byte)(32.0 + ((index - (double)minimum) / size) * 223.0);
 
             _grayscaleCache[index] = equivalent;
 
@@ -86,10 +89,24 @@ namespace Transrender.Palettes
 
         public int GetRange(double index)
         {
+            var roundedIndex = (int)Math.Floor(index);
+            if(roundedIndex == -1)
+            {
+                roundedIndex = 0;
+            }
+
+            if(roundedIndex >= 0 && roundedIndex < 256 && _rangeBoundaryCache[roundedIndex] != -1)
+            {
+                return _rangeBoundaryCache[roundedIndex];
+            }
+
             for (var i = 0; i < TtdRangeBoundaries.Length; i++)
             {
-                if (index < TtdRangeBoundaries[i])
+                if (roundedIndex < TtdRangeBoundaries[i])
                 {
+                    if (roundedIndex >= 0 && roundedIndex < 256) {
+                            _rangeBoundaryCache[roundedIndex] = i;
+                    }
                     return i;
                 }
             }

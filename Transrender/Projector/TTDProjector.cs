@@ -23,21 +23,22 @@ namespace Transrender.Projector
             return new[] { (int)(projectedX), (int)(projectedY) };
         }
 
-        public int[][] GetShadowVector(int projection)
+        public ShadowVector GetShadowVector(int projection)
         {
             return _shadowVectors[projection];
         }
 
-        private int[][][] _shadowVectors = {
-            new[]{new[]{0, 1, -1}, new[]{-1, 1, -1}, new[]{1, 1, -1}},
-            new[]{new[]{1, 1, -1}, new[]{0, 1, -1}, new[]{1, 0, -1}},
-            new[]{new[]{1, 0, -1}, new[]{1, 1, -1}, new[]{1, -1, -1}},
-            new[]{new[]{1, -1, -1}, new[]{1, 0, -1}, new[]{0, -1, -1}},
-            new[]{new[]{0, -1, -1}, new[]{1, -1, -1}, new[]{-1, -1, -1}},
-            new[]{new[]{-1, -1, -1}, new[]{0, -1, -1}, new[]{-1, 0, -1}},
-            new[]{new[]{-1, 0, -1}, new[]{-1, 1, -1}, new[]{-1, -1, -1}},
-            new[]{new[]{-1, 1, -1}, new[]{-1, 0, -1}, new[]{0, 1, -1}},
-            new[]{new[]{0, 1, -1}, new[]{-1, 1, -1}, new[]{1, 1, -1}}
+        private ShadowVector[] _shadowVectors = new[] {
+            new ShadowVector { Id = 0, Vectors = new[]{new[]{0,1,-1 }, new[]{-1,1,-1}, new[]{1,1,-1}  } },
+            new ShadowVector { Id = 0, Vectors = new[]{new[]{0,1,-1},  new[]{-1,1,-1}, new[]{1,1,-1}  } },
+            new ShadowVector { Id = 1, Vectors = new[]{new[]{1,1,-1},  new[]{0,1,-1},  new[]{1,0,-1}  } },
+            new ShadowVector { Id = 2, Vectors = new[]{new[]{1,0,-1},  new[]{1,1,-1},  new[]{1,-1,-1} } },
+            new ShadowVector { Id = 3, Vectors = new[]{new[]{1,-1,-1}, new[]{1,0,-1},  new[]{0,-1,-1} } },
+            new ShadowVector { Id = 4, Vectors = new[]{new[]{0,-1,-1}, new[]{1,-1,-1}, new[]{-1,-1,-1}} },
+            new ShadowVector { Id = 5, Vectors = new[]{new[]{-1,-1,-1},new[]{0,-1,-1}, new[]{-1,0,-1} } },
+            new ShadowVector { Id = 6, Vectors = new[]{new[]{-1,0,-1}, new[]{-1,1,-1}, new[]{-1,-1,-1}} },
+            new ShadowVector { Id = 7, Vectors = new[]{new[]{-1,1,-1}, new[]{-1,0,-1}, new[]{0,1,-1}  } },
+            new ShadowVector { Id = 0, Vectors = new[]{new[]{0,1,-1},  new[]{-1,1,-1}, new[]{1,1,-1}  } }
         };
 
         public Func<double, double, double, int, int, int, double>[] XProjections = {
