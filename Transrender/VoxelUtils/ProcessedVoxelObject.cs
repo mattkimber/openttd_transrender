@@ -44,14 +44,16 @@ namespace Transrender.VoxelUtils
                     {
                         Voxels[x][y][z] = new ProcessedVoxelElement
                         {
-                            Colour = GetThinnedColour(x, y, z),
-                            Normal = GetNormal(x, y, z)
+                            Colour = GetThinnedColour(x, y, z)
                         };
+
+                        Voxels[x][y][z].IsSurface = Voxels[x][y][z].Colour != 0 && Voxels[x][y][z].Colour == Data[x][y][z];
+                        Voxels[x][y][z].Normal = CalculateNormal(x, y, z);
                     }
                 }
             }
 
-            // Apply thinning to the data
+            // Apply thinning and averaging to the data
             for (var x = 0; x < Width; x++)
             {
                 for (var y = 0; y < Depth; y++)
@@ -59,6 +61,7 @@ namespace Transrender.VoxelUtils
                     for (var z = 0; z < Height; z++)
                     {
                         Data[x][y][z] = Voxels[x][y][z].Colour;
+                        Voxels[x][y][z].AveragedNormal = GetAveragedNormal(x, y, z);
                     }
                 }
             }
@@ -84,13 +87,96 @@ namespace Transrender.VoxelUtils
             return Data[x][y][z];
         }
 
-        private Vector GetNormal(int x, int y, int z)
+        private byte SafeGetData(int x, int y, int z)
         {
+            if(x < 0 || y < 0 || z < 0 || x >= Width || y >= Height || z >= Height)
+            {
+                return 0;
+            }
+
+            return Data[x][y][z];
+        }
+
+        private Vector SafeGetNormal(int x, int y, int z)
+        {
+            if (x < 0 || y < 0 || z < 0 || x >= Width || y >= Height || z >= Height)
+            {
+                return null;
+            }
+
+            return Voxels[x][y][z].Normal;
+        }
+
+        private Vector CalculateNormal(int x, int y, int z)
+        {
+            if(!Voxels[x][y][z].IsSurface)
+            {
+                return new Vector();
+            }
+
+            var xVector = 0;
+            var yVector = 0;
+            var zVector = 0;
+            var distance = 2;
+
+            // Sum the directions of "open" voxels
+            // TODO: this should be a sphere not a cube
+            for(var i = -distance; i <= distance; i++)
+            {
+                for (var j = -distance; j <= distance; j++)
+                {
+                    for(var k = -distance; k <= distance; k++)
+                    {
+                        if(SafeGetData(x+i,y+j,z+k) == 0)
+                        {
+                            xVector += i;
+                            yVector += j;
+                            zVector += k;
+                        }
+                    }
+                }
+            }
+
+            var magnitude = Math.Sqrt((xVector * xVector) + (yVector * yVector) + (zVector * zVector));
+
             return new Vector
             {
-                X = x,
-                Y = 0,
-                Z = 0
+                X = xVector / magnitude,
+                Y = yVector / magnitude,
+                Z = zVector / magnitude
+            };
+        }
+
+        private Vector GetAveragedNormal(int x, int y, int z)
+        {
+            var result = new Vector();
+            var distance = 1;
+
+            for (var i = -distance; i <= distance; i++)
+            {
+                for (var j = -distance; j <= distance; j++)
+                {
+                    for (var k = -distance; k <= distance; k++)
+                    {
+                        var normal = SafeGetNormal(x + i, y + j, z + k);
+                        if(normal != null)
+                        {
+                            result.X += normal.X;
+                            result.Y += normal.Y;
+                            result.Z += normal.Z;
+                        }
+                    }
+                }
+            }
+
+
+            var magnitude = Math.Sqrt((result.X * result.X) + (result.Y * result.Y) + (result.Z * result.Z));
+
+            return new Vector
+            {
+                X = result.X / magnitude,
+                Y = result.Y / magnitude,
+                Z = result.Z / magnitude
             };
         }
     }

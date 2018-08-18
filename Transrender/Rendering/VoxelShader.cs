@@ -150,15 +150,14 @@ namespace Transrender.Rendering
                 return _shaderCache[shadowVector.Id][x][y][z];
             }
 
-            //var originalColor = GetRawPixel(x,y, z);
-            var originalColor = (byte)_voxels.Voxels[x][y][z].Normal.X;
+            var originalColor = GetRawPixel(x,y, z);
 
             return new ShaderResult
             {
                 PaletteColour = originalColor,
-                R = originalColor,
-                G = originalColor,
-                B = originalColor,
+                R = (byte)(Math.Abs(_voxels.Voxels[x][y][z].AveragedNormal.X) * 255.0), //originalColor,
+                G = (byte)(Math.Abs(_voxels.Voxels[x][y][z].AveragedNormal.Y) * 255.0), //originalColor,
+                B = (byte)(Math.Abs(_voxels.Voxels[x][y][z].AveragedNormal.Z) * 255.0), //originalColor,
                 M = 0,
                 Has32BitData = true
             };

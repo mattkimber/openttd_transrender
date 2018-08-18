@@ -21,7 +21,7 @@ namespace Transrender
             var bar = new string('#', pc / 5);
             var remainder = new string('-', 20 - (pc / 5));
             Console.WriteLine("[" + bar + remainder + "]");
-            Console.WriteLine($"Last File: {file} (scale: {scale:F1}, bpp: {bpp})        ");
+            if(!string.IsNullOrEmpty(file)) Console.WriteLine($"Last File: {file} (scale: {scale:F1}, bpp: {bpp})        ");
         }
 
         static void Main(string[] args)
@@ -36,6 +36,7 @@ namespace Transrender
             var current = 0;
 
             var lockObject = new System.Object();
+            WriteStatusBar(current, total, "", 0, 0);
 
             Parallel.ForEach(files, file =>
             {
