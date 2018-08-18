@@ -82,7 +82,7 @@ namespace Transrender.Rendering
 
                             if (screenSpace[0] < width && screenSpace[1] < height && screenSpace[0] >= 0 && screenSpace[1] >= 0)
                             {
-                                var pixel = _shader.ShadePixel(roundedX, roundedY, roundedZ, _projector.GetShadowVector(_projection));
+                                var pixel = _shader.ShadePixel(roundedX, roundedY, roundedZ, _projection, _projector.GetLightingVector(_projection));
                                 result[screenSpace[0]][screenSpace[1]] = pixel;
                             }
                         }

@@ -83,7 +83,10 @@ namespace Transrender.VoxelUtils
                     Data[x][y + 1][z] != 0 &&
                     Data[x][y - 1][z] != 0 &&
                     Data[x][y][z + 1] != 0 &&
-                    Data[x][y][z - 1] != 0
+                    Data[x][y][z - 1] != 0 &&
+                    Data[x-1][y][z - 1] != 0 &&
+                    Data[x][y][z - 1] != 0 &&
+                    Data[x+1][y][z - 1] != 0
                     )
             {
                 return 0;
@@ -94,7 +97,7 @@ namespace Transrender.VoxelUtils
 
         private byte SafeGetData(int x, int y, int z)
         {
-            if(x < 0 || y < 0 || z < 0 || x >= Width || y >= Height || z >= Height)
+            if(x < 0 || y < 0 || z < 0 || x >= Width || y >= Depth || z >= Height)
             {
                 return 0;
             }
@@ -104,7 +107,7 @@ namespace Transrender.VoxelUtils
 
         private Vector SafeGetNormal(int x, int y, int z)
         {
-            if (x < 0 || y < 0 || z < 0 || x >= Width || y >= Height || z >= Height)
+            if (x < 0 || y < 0 || z < 0 || x >= Width || y >= Depth || z >= Height)
             {
                 return null;
             }
@@ -134,9 +137,9 @@ namespace Transrender.VoxelUtils
                     {
                         if((i*i)+(j*j)+(k*k) <= (distance*distance) && SafeGetData(x+i,y+j,z+k) == 0)
                         {
-                            xVector += i;
-                            yVector += j;
-                            zVector += k;
+                            xVector -= i;
+                            yVector -= j;
+                            zVector -= k;
                         }
                     }
                 }

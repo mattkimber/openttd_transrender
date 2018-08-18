@@ -11,6 +11,12 @@ namespace Transrender.VoxelUtils
         public double X { get; set; }
         public double Y { get; set; }
         public double Z { get; set; }
+
+
+        public double GetLength()
+        {
+            return Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
+        }
     }
 
     public class ProcessedVoxelElement

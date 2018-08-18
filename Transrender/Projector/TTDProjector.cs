@@ -1,4 +1,5 @@
 ﻿using System;
+using Transrender.VoxelUtils;
 
 namespace Transrender.Projector
 {
@@ -23,24 +24,23 @@ namespace Transrender.Projector
             return new[] { (int)(projectedX), (int)(projectedY) };
         }
 
-        public ShadowVector GetShadowVector(int projection)
+        public Vector GetLightingVector(int projection)
         {
-            return _shadowVectors[projection];
+            return _lightingVectors[projection];
         }
 
-        private ShadowVector[] _shadowVectors = new[] {
-            new ShadowVector { Id = 0, Vectors = new[]{new[]{0,1,-1 }, new[]{-1,1,-1}, new[]{1,1,-1}  } },
-            new ShadowVector { Id = 0, Vectors = new[]{new[]{0,1,-1},  new[]{-1,1,-1}, new[]{1,1,-1}  } },
-            new ShadowVector { Id = 1, Vectors = new[]{new[]{1,1,-1},  new[]{0,1,-1},  new[]{1,0,-1}  } },
-            new ShadowVector { Id = 2, Vectors = new[]{new[]{1,0,-1},  new[]{1,1,-1},  new[]{1,-1,-1} } },
-            new ShadowVector { Id = 3, Vectors = new[]{new[]{1,-1,-1}, new[]{1,0,-1},  new[]{0,-1,-1} } },
-            new ShadowVector { Id = 4, Vectors = new[]{new[]{0,-1,-1}, new[]{1,-1,-1}, new[]{-1,-1,-1}} },
-            new ShadowVector { Id = 5, Vectors = new[]{new[]{-1,-1,-1},new[]{0,-1,-1}, new[]{-1,0,-1} } },
-            new ShadowVector { Id = 6, Vectors = new[]{new[]{-1,0,-1}, new[]{-1,1,-1}, new[]{-1,-1,-1}} },
-            new ShadowVector { Id = 7, Vectors = new[]{new[]{-1,1,-1}, new[]{-1,0,-1}, new[]{0,1,-1}  } },
-            new ShadowVector { Id = 0, Vectors = new[]{new[]{0,1,-1},  new[]{-1,1,-1}, new[]{1,1,-1}  } }
+        private Vector[] _lightingVectors = new[]
+        {
+            new Vector { X = -1, Y = -1, Z = 2},
+            new Vector { X = -1, Y = 0, Z = 2},
+            new Vector { X = -1, Y = 1, Z = 2},
+            new Vector { X = 0, Y = 1, Z = 2},
+            new Vector { X = 1, Y = 1, Z = 2},
+            new Vector { X = 1, Y = 0, Z = 2},
+            new Vector { X = 1, Y = -1, Z = 2},
+            new Vector { X = 0, Y = -1, Z = 2}
         };
-
+        
         public Func<double, double, double, int, int, int, double>[] XProjections = {
             (x, y, z, width, height, depth) => (y / 1.5),
             (x, y, z, width, height, depth) => ((x / 2.0) + (y / 2.0)),

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Drawing;
 using System.Linq;
 using Transrender.Palettes;
 using Transrender.Projector;
+using Transrender.Util;
 using Transrender.VoxelUtils;
 
 namespace Transrender.Rendering
@@ -118,18 +120,7 @@ namespace Transrender.Rendering
 
             return (double)_occlusionCache[x][y][z];
         }
-
-        private double GetShadowOffset(int x, int y, int z, ShadowVector shadowVector)
-        {
-            var offset = 0.0;
-
-            offset -= shadowVector.Vectors
-                .Where(t => x + t[0] >= 0 && x + t[0] < Width && y + t[1] >= 0 && y + t[1] < Depth && z + t[2] >= 0 && z + t[2] < Height)
-                .Count(t => GetRawPixel(x + t[0],y + t[1],z + t[2]) != 0);
-
-            return offset;
-        }
-
+        
         public byte GetRawPixel(int x, int y, int z)
         {
             try
@@ -142,33 +133,16 @@ namespace Transrender.Rendering
             }
         }
 
-        public ShaderResult ShadePixel(int x, int y, int z, ShadowVector shadowVector)
+        public ShaderResult ShadePixel(int x, int y, int z, int projection, Vector lightingVector)
         {
 
-            if(_shaderCache[shadowVector.Id][x][y][z] != null)
+            if(_shaderCache[projection][x][y][z] != null)
             {
-                return _shaderCache[shadowVector.Id][x][y][z];
+                return _shaderCache[projection][x][y][z];
             }
 
-            var originalColor = GetRawPixel(x,y, z);
-
-            if (_voxels.Voxels[x][y][z].IsShadowed)
-            {
-                return new ShaderResult
-                {
-                    PaletteColour = originalColor,
-                    R = (byte)(Math.Abs(_voxels.Voxels[x][y][z].AveragedNormal.X) * 255.0), //originalColor,
-                    G = (byte)(Math.Abs(_voxels.Voxels[x][y][z].AveragedNormal.Y) * 255.0), //originalColor,
-                    B = (byte)(Math.Abs(_voxels.Voxels[x][y][z].AveragedNormal.Z) * 255.0), //originalColor,
-                    M = 0,
-                    Has32BitData = true
-                };
-            }
-            else
-            {
-                return new ShaderResult { PaletteColour = originalColor, R = 40, G = 40, B = 40, M = 0, Has32BitData = true };
-            }
-
+            var originalColor = GetRawPixel(x,y,z);
+            
             byte r, g, b, m;
 
             if (_palette.IsMaskColour(originalColor))
@@ -179,7 +153,6 @@ namespace Transrender.Rendering
                 r = _palette.GetGreyscaleEquivalent(originalColor);
                 g = _palette.GetGreyscaleEquivalent(originalColor);
                 b = _palette.GetGreyscaleEquivalent(originalColor);
-                //m = _palette.IsMaskColour(originalColor) ? _palette.GetRangeMidpoint(originalColor) : (byte)0;
                 m = (byte)(originalColor + (diff / 2));
 
             }
@@ -199,43 +172,60 @@ namespace Transrender.Rendering
                     R = r, G = g, B = b, A = 0, M = m, Has32BitData = true
                 };
             }
+            
+            var offset = GetLighting(x,y,z,lightingVector);
+            offset = (offset + 1.0);
 
-            var finalColor = (double)originalColor;
-            var offset = 0.0;
-            //var offset = 2.5 + GetAmbientOcclusionOffset(x, y, z);
+            if(_voxels.Voxels[x][y][z].IsShadowed)
+            {
+                offset = offset * 0.5;
+            }
 
-            //var offset = GetShadowOffset(x, y, z, shadowVector);
-            //finalColor += offset;
+            var colour = Color.FromArgb(r, g, b);
+            var lightness = ColourUtil.GetCorrectBrightness(r,g,b);
+            var hue = colour.GetHue();
+            var saturation = colour.GetSaturation();
+
+            var litColour = ColourUtil.FromHSL(hue, saturation, (float)(lightness * offset));
+            var finalColor = (double)originalColor + ((offset - 1.0) * 4.0);
             
             var ditheredTtdColour = GetDitheredColour(originalColor, finalColor, true);
 
             var result = new ShaderResult
             {
                 PaletteColour = ditheredTtdColour,
-                R = GetSafeOffsetColour(r, offset * 25),
-                G = GetSafeOffsetColour(g, offset * 25),
-                B = GetSafeOffsetColour(b, offset * 25),
-                M = m, Has32BitData = true
+                R = (byte)(litColour.R),
+                G = (byte)(litColour.G),
+                B = (byte)(litColour.B),
+                M = m,
+                Has32BitData = true
             };
 
-            _shaderCache[shadowVector.Id][x][y][z] = result;
+            /*
+            result = new ShaderResult
+            {
+                PaletteColour = ditheredTtdColour,
+                R = (byte)(offset * 127.0),
+                G = (byte)(offset * 127.0),
+                B = (byte)(offset * 127.0),
+                M = m,
+                Has32BitData = true
+            };*/
+
+            _shaderCache[projection][x][y][z] = result;
             return result;
 
         }
 
-        private byte GetSafeOffsetColour(byte value, double offset)
+        private double GetLighting(int x, int y, int z, Vector lightingVector)
         {
-            if((double)value + offset > 255)
-            {
-                return 255;
-            }
+            var normal = _voxels.Voxels[x][y][z].AveragedNormal;
+            var dotProduct = (normal.X * lightingVector.X) 
+                + (normal.Y * lightingVector.Y) 
+                + (normal.Z * lightingVector.Z);
 
-            if((double)value + offset < 0)
-            {
-                return 0;
-            }
-
-            return (byte)(value + offset);
+            var magnitude = normal.GetLength() * lightingVector.GetLength();
+            return dotProduct / magnitude;
         }
 
         public bool IsTransparent(int x, int y, int z)

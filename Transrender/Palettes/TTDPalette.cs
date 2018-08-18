@@ -68,13 +68,9 @@ namespace Transrender.Palettes
             {
                 return (byte)_grayscaleCache[index];
             }
-
-            var range = GetRange(index);
-            var minimum = GetRangeMinimum(range);
-            var maximum = GetRangeMaximum(range);
-            var size = maximum - minimum;
-            var equivalent = (byte)(32.0 + ((index - (double)minimum) / size) * 223.0);
-
+            
+            var equivalent = (byte)(ColourUtil.GetCorrectBrightness(TtdPalette[index, 0], TtdPalette[index, 1], TtdPalette[index, 2]) * 255.0);
+            
             _grayscaleCache[index] = equivalent;
 
             return equivalent;
