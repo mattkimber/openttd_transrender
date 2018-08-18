@@ -7,6 +7,7 @@ using Transrender.Configuration;
 using Transrender.Palettes;
 using Transrender.Projector;
 using Transrender.Rendering;
+using Transrender.VoxelUtils;
 using VoxelLoader;
 
 namespace Transrender
@@ -39,8 +40,9 @@ namespace Transrender
             Parallel.ForEach(files, file =>
             {
                 var voxels = MagicaVoxelFileReader.Read(file);
+                var processedVoxels = new ProcessedVoxelObject(voxels);
 
-                var shader = new VoxelShader(palette, voxels);
+                var shader = new VoxelShader(palette, processedVoxels);
                 var projector = new TTDProjector(shader.Width, shader.Height, shader.Depth);
 
                 foreach(var target in targets.Targets)

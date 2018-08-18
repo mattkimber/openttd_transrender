@@ -54,16 +54,37 @@ namespace Transrender.Rendering
 
             for (var x = flipX ? (double)_shader.Width - 1 : 0.0; flipX ? x >= 0 : x < _shader.Width; x += (flipX ? -step : step))
             {
+                var roundedX = (int)Math.Round(x);
+                if(roundedX >= _shader.Width)
+                {
+                    roundedX = _shader.Width - 1;
+                }
+
                 for (var y = flipY ? (double)_shader.Depth - 1 : 0.0; flipY ? y >= 0 : y < _shader.Depth; y += (flipY ? -step : step))
                 {
+                    var roundedY = (int)Math.Round(y);
+                    if (roundedY >= _shader.Depth)
+                    {
+                        roundedY = _shader.Depth - 1;
+                    }
+
                     for (var z = 0.0; z < _shader.Height; z += step)
                     {
-                        var screenSpace = _projector.GetProjectedValues(x, y, z, _projection, renderScale);
-
-                        if (!_shader.IsTransparent((int)x, (int)y, (int)z) && screenSpace[0] < width && screenSpace[1] < height && screenSpace[0] >= 0 && screenSpace[1] >= 0)
+                        var roundedZ = (int)Math.Round(z);
+                        if (roundedZ >= _shader.Height)
                         {
-                            var pixel = _shader.ShadePixel((int)x, (int)y, (int)z, _projector.GetShadowVector(_projection));
-                            result[screenSpace[0]][screenSpace[1]] = pixel;
+                            roundedZ = _shader.Height - 1;
+                        }
+
+                        if (!_shader.IsTransparent(roundedX, roundedY, roundedZ))
+                        {
+                            var screenSpace = _projector.GetProjectedValues(x, y, z, _projection, renderScale);
+
+                            if (screenSpace[0] < width && screenSpace[1] < height && screenSpace[0] >= 0 && screenSpace[1] >= 0)
+                            {
+                                var pixel = _shader.ShadePixel(roundedX, roundedY, roundedZ, _projector.GetShadowVector(_projection));
+                                result[screenSpace[0]][screenSpace[1]] = pixel;
+                            }
                         }
                     }
                 }

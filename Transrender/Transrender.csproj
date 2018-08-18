@@ -70,6 +70,8 @@
     <Compile Include="Rendering\VoxelScaler.cs" />
     <Compile Include="Rendering\VoxelShader.cs" />
     <Compile Include="Util\LinqUtil.cs" />
+    <Compile Include="VoxelUtils\ProcessedVoxelElement.cs" />
+    <Compile Include="VoxelUtils\ProcessedVoxelObject.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
