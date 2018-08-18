@@ -19,5 +19,6 @@ namespace Transrender.VoxelUtils
         public Vector AveragedNormal { get; set; }
         public byte Colour { get; set; }
         public bool IsSurface { get; set; }
+        public bool IsShadowed { get; set; }
     }
 }

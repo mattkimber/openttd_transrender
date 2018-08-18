@@ -152,15 +152,22 @@ namespace Transrender.Rendering
 
             var originalColor = GetRawPixel(x,y, z);
 
-            return new ShaderResult
+            if (_voxels.Voxels[x][y][z].IsShadowed)
             {
-                PaletteColour = originalColor,
-                R = (byte)(Math.Abs(_voxels.Voxels[x][y][z].AveragedNormal.X) * 255.0), //originalColor,
-                G = (byte)(Math.Abs(_voxels.Voxels[x][y][z].AveragedNormal.Y) * 255.0), //originalColor,
-                B = (byte)(Math.Abs(_voxels.Voxels[x][y][z].AveragedNormal.Z) * 255.0), //originalColor,
-                M = 0,
-                Has32BitData = true
-            };
+                return new ShaderResult
+                {
+                    PaletteColour = originalColor,
+                    R = (byte)(Math.Abs(_voxels.Voxels[x][y][z].AveragedNormal.X) * 255.0), //originalColor,
+                    G = (byte)(Math.Abs(_voxels.Voxels[x][y][z].AveragedNormal.Y) * 255.0), //originalColor,
+                    B = (byte)(Math.Abs(_voxels.Voxels[x][y][z].AveragedNormal.Z) * 255.0), //originalColor,
+                    M = 0,
+                    Has32BitData = true
+                };
+            }
+            else
+            {
+                return new ShaderResult { PaletteColour = originalColor, R = 40, G = 40, B = 40, M = 0, Has32BitData = true };
+            }
 
             byte r, g, b, m;
 

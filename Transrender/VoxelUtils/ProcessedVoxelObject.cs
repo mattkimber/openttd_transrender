@@ -49,6 +49,11 @@ namespace Transrender.VoxelUtils
 
                         Voxels[x][y][z].IsSurface = Voxels[x][y][z].Colour != 0 && Voxels[x][y][z].Colour == Data[x][y][z];
                         Voxels[x][y][z].Normal = CalculateNormal(x, y, z);
+
+                        if(Voxels[x][y][z].IsSurface)
+                        {
+                            Voxels[x][y][z].IsShadowed = GetIsShadowed(x, y, z);
+                        }
                     }
                 }
             }
@@ -117,7 +122,7 @@ namespace Transrender.VoxelUtils
             var xVector = 0;
             var yVector = 0;
             var zVector = 0;
-            var distance = 2;
+            var distance = 3;
 
             // Sum the directions of "open" voxels
             // TODO: this should be a sphere not a cube
@@ -127,7 +132,7 @@ namespace Transrender.VoxelUtils
                 {
                     for(var k = -distance; k <= distance; k++)
                     {
-                        if(SafeGetData(x+i,y+j,z+k) == 0)
+                        if((i*i)+(j*j)+(k*k) <= (distance*distance) && SafeGetData(x+i,y+j,z+k) == 0)
                         {
                             xVector += i;
                             yVector += j;
@@ -178,6 +183,24 @@ namespace Transrender.VoxelUtils
                 Y = result.Y / magnitude,
                 Z = result.Z / magnitude
             };
+        }
+
+        private bool GetIsShadowed(int x, int y, int z)
+        {
+            if(SafeGetData(x,y,z-1) != 0)
+            {
+                return false;
+            }
+
+            for(var i = 0; i < z; i++)
+            {
+                if(SafeGetData(x,y,i) != 0)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }
