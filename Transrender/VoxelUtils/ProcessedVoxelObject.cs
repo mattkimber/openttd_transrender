@@ -177,8 +177,12 @@ namespace Transrender.VoxelUtils
                 }
             }
 
-
             var magnitude = Math.Sqrt((result.X * result.X) + (result.Y * result.Y) + (result.Z * result.Z));
+
+            if(magnitude < 0.5)
+            {
+                return Voxels[x][y][z].Normal;
+            }
 
             return new Vector
             {

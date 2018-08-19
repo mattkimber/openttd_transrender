@@ -69,7 +69,7 @@ namespace Transrender.Palettes
                 return (byte)_grayscaleCache[index];
             }
             
-            var equivalent = (byte)(ColourUtil.GetCorrectBrightness(TtdPalette[index, 0], TtdPalette[index, 1], TtdPalette[index, 2]) * 255.0);
+            var equivalent = (byte)(ColourUtil.GetCorrectBrightness(TtdPalette[index, 0], TtdPalette[index, 1], TtdPalette[index, 2]) * 255.0 * 1.25);
             
             _grayscaleCache[index] = equivalent;
 
@@ -214,6 +214,7 @@ namespace Transrender.Palettes
                 };
             }
 
+            /*
             if (colours.Any(c => GetColourBehaviour(c.PaletteColour) == ColourFlag.TakesPriority))
             {
                 var paletteColour = colours.First(c => GetColourBehaviour(c.PaletteColour) == ColourFlag.TakesPriority).PaletteColour;
@@ -229,6 +230,7 @@ namespace Transrender.Palettes
                     Has32BitData = true
                 };
             }
+            */
 
             if (colours.Any(c => c.PaletteColour != 0))
             {

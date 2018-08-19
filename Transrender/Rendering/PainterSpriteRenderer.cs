@@ -52,12 +52,12 @@ namespace Transrender.Rendering
                 result[i] = new ShaderResult[height];
             }
 
-            for (var x = flipX ? (double)_shader.Width - 1 : 0.0; flipX ? x >= 0 : x < _shader.Width; x += (flipX ? -step : step))
+            for (var z = (double)_shader.Height; z >= 0; z -= step)
             {
-                var roundedX = (int)Math.Round(x);
-                if(roundedX >= _shader.Width)
+                var roundedZ = (int)Math.Round(z);
+                if (roundedZ >= _shader.Height)
                 {
-                    roundedX = _shader.Width - 1;
+                    roundedZ = _shader.Height - 1;
                 }
 
                 for (var y = flipY ? (double)_shader.Depth - 1 : 0.0; flipY ? y >= 0 : y < _shader.Depth; y += (flipY ? -step : step))
@@ -68,13 +68,14 @@ namespace Transrender.Rendering
                         roundedY = _shader.Depth - 1;
                     }
 
-                    for (var z = 0.0; z < _shader.Height; z += step)
+                    for(var x = flipX ? (double)_shader.Width - 1 : 0.0; flipX? x >= 0 : x < _shader.Width; x += (flipX ? -step : step))
                     {
-                        var roundedZ = (int)Math.Round(z);
-                        if (roundedZ >= _shader.Height)
+                        var roundedX = (int)Math.Round(x);
+                        if (roundedX >= _shader.Width)
                         {
-                            roundedZ = _shader.Height - 1;
+                            roundedX = _shader.Width - 1;
                         }
+
 
                         if (!_shader.IsTransparent(roundedX, roundedY, roundedZ))
                         {

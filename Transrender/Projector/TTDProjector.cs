@@ -31,6 +31,15 @@ namespace Transrender.Projector
 
         private Vector[] _lightingVectors = new[]
         {
+            new Vector { X = 0, Y = -1, Z = 2},
+            new Vector { X = -1, Y = -1, Z = 2},
+            new Vector { X = -1, Y = 0, Z = 2},
+            new Vector { X = -1, Y = 1, Z = 2},
+            new Vector { X = 0, Y = 1, Z = 2},
+            new Vector { X = 1, Y = 1, Z = 2},
+            new Vector { X = 1, Y = 0, Z = 2},
+            new Vector { X = 1, Y = -1, Z = 2}
+            /*
             new Vector { X = -1, Y = -1, Z = 2},
             new Vector { X = -1, Y = 0, Z = 2},
             new Vector { X = -1, Y = 1, Z = 2},
@@ -39,6 +48,7 @@ namespace Transrender.Projector
             new Vector { X = 1, Y = 0, Z = 2},
             new Vector { X = 1, Y = -1, Z = 2},
             new Vector { X = 0, Y = -1, Z = 2}
+            */
         };
         
         public Func<double, double, double, int, int, int, double>[] XProjections = {

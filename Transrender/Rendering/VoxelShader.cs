@@ -93,34 +93,7 @@ namespace Transrender.Rendering
 
             return (byte)Math.Round(finalColor);
         }
-
-        private double GetAmbientOcclusionOffset(int x, int y, int z)
-        {
-            if (_occlusionCache[x][y][z] == null)
-            {
-
-                var occlusionCount = 0;
-
-                for (var i = x > 1 ? -1 : 0; i < (x >= (Width - 2) ? Width - x : 2); i += 2)
-                {
-                    for (var j = y > 1 ? -1 : 0; j < (y >= (Depth - 2) ? Depth - y : 2); j += 2)
-                    {
-                        for (var k = z > 1 ? -1 : 0; k < (z >= (Height - 2) ? Height - z : 2); k += 2)
-                        {
-                            if (GetRawPixel(x + i, y + j, z + k) != 0)
-                            {
-                                occlusionCount--;
-                            }
-                        }
-                    }
-                }
-
-                _occlusionCache[x][y][z] = occlusionCount / 4.0;
-            }
-
-            return (double)_occlusionCache[x][y][z];
-        }
-        
+       
         public byte GetRawPixel(int x, int y, int z)
         {
             try
@@ -163,7 +136,7 @@ namespace Transrender.Rendering
                 b = _palette.Palette.Entries[originalColor].B;
                 m = 0;
             }
-
+            
             if (_palette.IsSpecialColour(originalColor))
             {
                 return new ShaderResult
@@ -178,15 +151,9 @@ namespace Transrender.Rendering
 
             if(_voxels.Voxels[x][y][z].IsShadowed)
             {
-                offset = offset * 0.5;
+                offset = offset * 0.75;
             }
 
-            var colour = Color.FromArgb(r, g, b);
-            var lightness = ColourUtil.GetCorrectBrightness(r,g,b);
-            var hue = colour.GetHue();
-            var saturation = colour.GetSaturation();
-
-            var litColour = ColourUtil.FromHSL(hue, saturation, (float)(lightness * offset));
             var finalColor = (double)originalColor + ((offset - 1.0) * 4.0);
             
             var ditheredTtdColour = GetDitheredColour(originalColor, finalColor, true);
@@ -194,9 +161,9 @@ namespace Transrender.Rendering
             var result = new ShaderResult
             {
                 PaletteColour = ditheredTtdColour,
-                R = (byte)(litColour.R),
-                G = (byte)(litColour.G),
-                B = (byte)(litColour.B),
+                R = GetClampedColour(r, offset),
+                G = GetClampedColour(g, offset),
+                B = GetClampedColour(b, offset),
                 M = m,
                 Has32BitData = true
             };
@@ -210,11 +177,19 @@ namespace Transrender.Rendering
                 B = (byte)(offset * 127.0),
                 M = m,
                 Has32BitData = true
-            };*/
+            };
+            */
 
             _shaderCache[projection][x][y][z] = result;
             return result;
 
+        }
+
+        private byte GetClampedColour(byte value, double multiplier)
+        {
+            var result = value * multiplier;
+            if(result > 255) return 255;
+            return (byte)result;
         }
 
         private double GetLighting(int x, int y, int z, Vector lightingVector)

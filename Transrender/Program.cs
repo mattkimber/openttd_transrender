@@ -18,8 +18,8 @@ namespace Transrender
         {
             Console.SetCursorPosition(0, 1);
             var pc = (current * 100) / total;
-            var bar = new string('#', pc / 5);
-            var remainder = new string('-', 20 - (pc / 5));
+            var bar = new string('#', pc / 2);
+            var remainder = new string('-', 50 - (pc / 2));
             Console.WriteLine("[" + bar + remainder + "]");
             if(!string.IsNullOrEmpty(file)) Console.WriteLine($"Last File: {file} (scale: {scale:F1}, bpp: {bpp})        ");
         }
