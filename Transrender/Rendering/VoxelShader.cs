@@ -205,7 +205,7 @@ namespace Transrender.Rendering
 
         public bool IsTransparent(int x, int y, int z)
         {
-            return GetRawPixel(x,y, z) == 0;
+            return _voxels.Data[x][y][z] == 0;
         }
     }
 }

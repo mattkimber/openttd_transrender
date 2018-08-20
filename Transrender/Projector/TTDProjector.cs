@@ -24,6 +24,14 @@ namespace Transrender.Projector
             return new[] { (int)(projectedX), (int)(projectedY) };
         }
 
+        public double[] GetPreciseProjectedValues(double x, double y, double z, int projection, double scale)
+        {
+            var projectedX = (GetProjection(XProjections, x, y, z, projection) * scale);
+            var projectedY = (GetProjection(YProjections, x, y, z, projection) * scale);
+
+            return new[] { (projectedX), (projectedY) };
+        }
+
         public Vector GetLightingVector(int projection)
         {
             return _lightingVectors[projection];
@@ -39,16 +47,6 @@ namespace Transrender.Projector
             new Vector { X = 1, Y = 1, Z = 2},
             new Vector { X = 1, Y = 0, Z = 2},
             new Vector { X = 1, Y = -1, Z = 2}
-            /*
-            new Vector { X = -1, Y = -1, Z = 2},
-            new Vector { X = -1, Y = 0, Z = 2},
-            new Vector { X = -1, Y = 1, Z = 2},
-            new Vector { X = 0, Y = 1, Z = 2},
-            new Vector { X = 1, Y = 1, Z = 2},
-            new Vector { X = 1, Y = 0, Z = 2},
-            new Vector { X = 1, Y = -1, Z = 2},
-            new Vector { X = 0, Y = -1, Z = 2}
-            */
         };
         
         public Func<double, double, double, int, int, int, double>[] XProjections = {

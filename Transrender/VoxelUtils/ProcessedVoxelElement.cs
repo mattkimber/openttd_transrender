@@ -6,19 +6,6 @@ using System.Threading.Tasks;
 
 namespace Transrender.VoxelUtils
 {
-    public class Vector
-    {
-        public double X { get; set; }
-        public double Y { get; set; }
-        public double Z { get; set; }
-
-
-        public double GetLength()
-        {
-            return Math.Sqrt((X * X) + (Y * Y) + (Z * Z));
-        }
-    }
-
     public class ProcessedVoxelElement
     {
         public Vector Normal { get; set; }
