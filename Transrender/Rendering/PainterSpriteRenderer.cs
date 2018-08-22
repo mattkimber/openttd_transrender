@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Transrender.Palettes;
@@ -8,6 +9,20 @@ using Transrender.Projector;
 
 namespace Transrender.Rendering
 {
+    public class ShaderLine
+    {
+        public double X { get; private set; }
+        public int Steps { get; private set; }
+        public ShaderResult Result { get; private set; }
+
+        public ShaderLine(double x, int steps, ShaderResult result)
+        {
+            X = x;
+            Steps = steps;
+            Result = result;
+        }
+    }
+
     public class PainterSpriteRenderer : ISpriteRenderer
     {
         private int _projection;
@@ -52,6 +67,14 @@ namespace Transrender.Rendering
                 result[i] = new ShaderResult[height];
             }
 
+            int lastZ = -1, lastY = -1, lastX = -1;
+            var lastResult = new ShaderResult();
+            var xGuard = _shader.Width - 0.5;
+            var xStep = flipX ? -step : step;
+            var xStart = flipX ? (double)_shader.Width - 1 : 0.0;
+
+            var lastYLine = new List<Tuple<double, List<ShaderLine>>>();
+
             for (var z = (double)_shader.Height; z >= 0; z -= step)
             {
                 var roundedZ = (int)Math.Round(z);
@@ -60,38 +83,109 @@ namespace Transrender.Rendering
                     roundedZ = _shader.Height - 1;
                 }
 
-                for (var y = flipY ? (double)_shader.Depth - 1 : 0.0; flipY ? y >= 0 : y < _shader.Depth; y += (flipY ? -step : step))
+                if (roundedZ == lastZ)
                 {
-                    var roundedY = (int)Math.Round(y);
-                    if (roundedY >= _shader.Depth)
+                    foreach (var yLineItem in lastYLine)
                     {
-                        roundedY = _shader.Depth - 1;
-                    }
-
-                    for(var x = flipX ? (double)_shader.Width - 1 : 0.0; flipX? x >= 0 : x < _shader.Width; x += (flipX ? -step : step))
-                    {
-                        var roundedX = (int)Math.Round(x);
-                        if (roundedX >= _shader.Width)
-                        {
-                            roundedX = _shader.Width - 1;
-                        }
-
-
-                        if (!_shader.IsTransparent(roundedX, roundedY, roundedZ))
-                        {
-                            var screenSpace = _projector.GetProjectedValues(x, y, z, _projection, renderScale);
-
-                            if (screenSpace[0] < width && screenSpace[1] < height && screenSpace[0] >= 0 && screenSpace[1] >= 0)
-                            {
-                                var pixel = _shader.ShadePixel(roundedX, roundedY, roundedZ, _projection, _projector.GetLightingVector(_projection));
-                                result[screenSpace[0]][screenSpace[1]] = pixel;
-                            }
-                        }
+                        var currentProjectedValue = _projector.GetPreciseProjectedValues(xStart, yLineItem.Item1, z, _projection, renderScale);
+                        var projectionStep = GetProjectionStep(xStep, xStart, yLineItem.Item1, z, currentProjectedValue, renderScale);
+                        RenderLine(width, height, result, yLineItem.Item2, currentProjectedValue, projectionStep);
                     }
                 }
+                else
+                {
+                    lastYLine = new List<Tuple<double, List<ShaderLine>>>();
+                    var lastXLine = new List<ShaderLine>();
+
+                    for (var y = flipY ? (double)_shader.Depth - 1 : 0.0; flipY ? y >= 0 : y < _shader.Depth; y += (flipY ? -step : step))
+                    {
+                        var roundedY = (int)Math.Round(y);
+                        if (roundedY >= _shader.Depth)
+                        {
+                            roundedY = _shader.Depth - 1;
+                        }
+
+                        var currentProjectedValue = _projector.GetPreciseProjectedValues(xStart, y, z, _projection, renderScale);
+                        var projectionStep = GetProjectionStep(xStep, xStart, y, z, currentProjectedValue, renderScale);
+
+                        if (roundedY == lastY)
+                        {
+                            RenderLine(width, height, result, lastXLine, currentProjectedValue, projectionStep);                           
+                        }
+                        else
+                        {
+                            lastXLine = new List<ShaderLine>();
+
+                            var steps = 0;
+
+                            for (var x = xStart; flipX ? x >= 0 : x < xGuard; x += xStep)
+                            {
+                                var roundedX = (int)Math.Round(x);
+                                steps++;
+
+                                if (roundedX == lastX && roundedY == lastY && roundedZ == lastZ)
+                                {
+                                    if (lastResult != null)
+                                    {
+                                        lastXLine.Add(new ShaderLine(x, steps, lastResult));
+                                        var screenSpace = _projector.GetProjectedValues(x, y, z, _projection, renderScale);
+                                        if (screenSpace[0] < width && screenSpace[1] < height && screenSpace[0] >= 0 && screenSpace[1] >= 0)
+                                        {
+                                            result[screenSpace[0]][screenSpace[1]] = lastResult;
+                                        }
+                                    }
+                                }
+                                else if (!_shader.IsTransparent(roundedX, roundedY, roundedZ))
+                                {
+                                    var screenSpace = currentProjectedValue; 
+
+                                    var pixel = _shader.ShadePixel(roundedX, roundedY, roundedZ, _projection, _projector.GetLightingVector(_projection));
+                                    lastXLine.Add(new ShaderLine(x, steps, lastResult));
+
+                                    if (screenSpace.X < width && screenSpace.Y < height && screenSpace.X >= 0 && screenSpace.Y >= 0)
+                                    {
+                                        result[(int)screenSpace.X][(int)screenSpace.Y] = pixel;
+                                        lastResult = pixel;
+                                    }
+                                }
+                                else
+                                {
+                                    lastResult = null;
+                                }
+
+                                lastX = roundedX;
+                                currentProjectedValue += projectionStep;
+
+
+                            }
+                        }
+
+                        lastY = roundedY;
+                        lastYLine.Add(new Tuple<double, List<ShaderLine>>(y, lastXLine));
+                    }
+                }
+                lastZ = roundedZ;
             }
 
             return result;
+        }
+
+        private static void RenderLine(int width, int height, ShaderResult[][] result, List<ShaderLine> line, Vector2 currentProjectedValue, Vector2 projectionStep)
+        {
+            foreach (var lineItem in line)
+            {
+                var screenSpace = currentProjectedValue + (projectionStep * lineItem.Steps);
+ 
+                if (screenSpace.X < width && screenSpace.Y < height && screenSpace.X >= 0 && screenSpace.Y >= 0)
+                {
+                    result[(int)screenSpace.X][(int)screenSpace.Y] = lineItem.Result;
+                }
+            }
+        }
+
+        private Vector2 GetProjectionStep(double xStep, double xStart, double y, double z, Vector2 currentProjectedValue, double renderScale)
+        {
+            return _projector.GetPreciseProjectedValues(xStart + xStep, y, z, _projection, renderScale) - currentProjectedValue;
         }
     }
 }

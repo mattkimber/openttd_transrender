@@ -41,7 +41,7 @@ namespace Transrender.Rendering
             var finalXOffset = (int)(xOffset + (_geometry.GetSpriteWidth(projection) - (sprite.Width + (4 * _scale))));
             var finalYOffset = (int)(yOffset + (_geometry.GetSpriteHeight(projection) - (sprite.Height + (4 * _scale))));
 
-            if(projection == 0)
+            if (projection == 0)
             {
                 finalYOffset += (int)(2 * _scale);
             }

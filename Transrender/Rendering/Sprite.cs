@@ -57,7 +57,8 @@ namespace Transrender.Rendering
             switch (rendererChoice.ToLower())
             {
                 case "raycast":
-                    throw new NotImplementedException();
+                    _renderer = new RaycastRenderer(projection, geometry, shader, projector);
+                    break;
                 default:
                     _renderer = new PainterSpriteRenderer(projection, geometry, shader, projector);
                     break;

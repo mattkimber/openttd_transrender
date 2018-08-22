@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using Transrender.VoxelUtils;
 
 namespace Transrender.Projector
@@ -24,31 +25,29 @@ namespace Transrender.Projector
             return new[] { (int)(projectedX), (int)(projectedY) };
         }
 
-        public Vector GetLightingVector(int projection)
+        public Vector2 GetPreciseProjectedValues(double x, double y, double z, int projection, double scale)
+        {
+            return new Vector2(
+                (float)(GetProjection(XProjections, x, y, z, projection) * scale),
+                (float)(GetProjection(YProjections, x, y, z, projection) * scale)
+            );
+        }
+
+        public Vector3 GetLightingVector(int projection)
         {
             return _lightingVectors[projection];
         }
 
-        private Vector[] _lightingVectors = new[]
+        private Vector3[] _lightingVectors = new[]
         {
-            new Vector { X = 0, Y = -1, Z = 2},
-            new Vector { X = -1, Y = -1, Z = 2},
-            new Vector { X = -1, Y = 0, Z = 2},
-            new Vector { X = -1, Y = 1, Z = 2},
-            new Vector { X = 0, Y = 1, Z = 2},
-            new Vector { X = 1, Y = 1, Z = 2},
-            new Vector { X = 1, Y = 0, Z = 2},
-            new Vector { X = 1, Y = -1, Z = 2}
-            /*
-            new Vector { X = -1, Y = -1, Z = 2},
-            new Vector { X = -1, Y = 0, Z = 2},
-            new Vector { X = -1, Y = 1, Z = 2},
-            new Vector { X = 0, Y = 1, Z = 2},
-            new Vector { X = 1, Y = 1, Z = 2},
-            new Vector { X = 1, Y = 0, Z = 2},
-            new Vector { X = 1, Y = -1, Z = 2},
-            new Vector { X = 0, Y = -1, Z = 2}
-            */
+            new Vector3 { X = 0, Y = -1, Z = 2},
+            new Vector3 { X = -1, Y = -1, Z = 2},
+            new Vector3 { X = -1, Y = 0, Z = 2},
+            new Vector3 { X = -1, Y = 1, Z = 2},
+            new Vector3 { X = 0, Y = 1, Z = 2},
+            new Vector3 { X = 1, Y = 1, Z = 2},
+            new Vector3 { X = 1, Y = 0, Z = 2},
+            new Vector3 { X = 1, Y = -1, Z = 2}
         };
         
         public Func<double, double, double, int, int, int, double>[] XProjections = {

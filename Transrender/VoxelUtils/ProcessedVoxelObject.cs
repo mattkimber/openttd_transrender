@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -105,7 +106,7 @@ namespace Transrender.VoxelUtils
             return Data[x][y][z];
         }
 
-        private Vector SafeGetNormal(int x, int y, int z)
+        private Vector3? SafeGetNormal(int x, int y, int z)
         {
             if (x < 0 || y < 0 || z < 0 || x >= Width || y >= Depth || z >= Height)
             {
@@ -115,11 +116,11 @@ namespace Transrender.VoxelUtils
             return Voxels[x][y][z].Normal;
         }
 
-        private Vector CalculateNormal(int x, int y, int z)
+        private Vector3 CalculateNormal(int x, int y, int z)
         {
             if(!Voxels[x][y][z].IsSurface)
             {
-                return new Vector();
+                return new Vector3();
             }
 
             var xVector = 0;
@@ -145,19 +146,12 @@ namespace Transrender.VoxelUtils
                 }
             }
 
-            var magnitude = Math.Sqrt((xVector * xVector) + (yVector * yVector) + (zVector * zVector));
-
-            return new Vector
-            {
-                X = xVector / magnitude,
-                Y = yVector / magnitude,
-                Z = zVector / magnitude
-            };
+            return Vector3.Normalize(new Vector3(xVector, yVector, zVector));
         }
 
-        private Vector GetAveragedNormal(int x, int y, int z)
+        private Vector3 GetAveragedNormal(int x, int y, int z)
         {
-            var result = new Vector();
+            var result = new Vector3();
             var distance = 1;
 
             for (var i = -distance; i <= distance; i++)
@@ -169,27 +163,18 @@ namespace Transrender.VoxelUtils
                         var normal = SafeGetNormal(x + i, y + j, z + k);
                         if(normal != null)
                         {
-                            result.X += normal.X;
-                            result.Y += normal.Y;
-                            result.Z += normal.Z;
+                            result += normal.Value;
                         }
                     }
                 }
             }
-
-            var magnitude = Math.Sqrt((result.X * result.X) + (result.Y * result.Y) + (result.Z * result.Z));
-
-            if(magnitude < 0.5)
+            
+            if(result.Length() < 0.5)
             {
                 return Voxels[x][y][z].Normal;
             }
 
-            return new Vector
-            {
-                X = result.X / magnitude,
-                Y = result.Y / magnitude,
-                Z = result.Z / magnitude
-            };
+            return Vector3.Normalize(result);
         }
 
         private bool GetIsShadowed(int x, int y, int z)
