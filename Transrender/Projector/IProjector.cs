@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Transrender.VoxelUtils;
+using System.Numerics;
 
 namespace Transrender.Projector
 {
@@ -12,6 +13,6 @@ namespace Transrender.Projector
         int[] GetProjectedValues(double x, double y, double z, int projection, double scale);
         double[] GetPreciseProjectedValues(double x, double y, double z, int projection, double scale);
 
-        Vector GetLightingVector(int projection);
+        Vector3 GetLightingVector(int projection);
     }
 }

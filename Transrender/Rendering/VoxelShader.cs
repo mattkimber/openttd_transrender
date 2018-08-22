@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Drawing;
 using System.Linq;
+using System.Numerics;
 using Transrender.Palettes;
 using Transrender.Projector;
 using Transrender.Util;
@@ -106,7 +107,7 @@ namespace Transrender.Rendering
             }
         }
 
-        public ShaderResult ShadePixel(int x, int y, int z, int projection, Vector lightingVector)
+        public ShaderResult ShadePixel(int x, int y, int z, int projection, Vector3 lightingVector)
         {
 
             if(_shaderCache[projection][x][y][z] != null)
@@ -192,14 +193,14 @@ namespace Transrender.Rendering
             return (byte)result;
         }
 
-        private double GetLighting(int x, int y, int z, Vector lightingVector)
+        private double GetLighting(int x, int y, int z, Vector3 lightingVector)
         {
             var normal = _voxels.Voxels[x][y][z].AveragedNormal;
             var dotProduct = (normal.X * lightingVector.X) 
                 + (normal.Y * lightingVector.Y) 
                 + (normal.Z * lightingVector.Z);
 
-            var magnitude = normal.GetLength() * lightingVector.GetLength();
+            var magnitude = normal.Length() * lightingVector.Length();
             return dotProduct / magnitude;
         }
 

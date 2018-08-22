@@ -38,6 +38,8 @@
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -72,7 +74,8 @@
     <Compile Include="Util\LinqUtil.cs" />
     <Compile Include="VoxelUtils\ProcessedVoxelElement.cs" />
     <Compile Include="VoxelUtils\ProcessedVoxelObject.cs" />
-    <Compile Include="VoxelUtils\Vector.cs" />
+    <Compile Include="VoxelUtils\OldVector.cs" />
+    <Compile Include="VoxelUtils\VectorUtils.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">

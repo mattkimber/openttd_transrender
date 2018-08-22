@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Transrender.Palettes;
@@ -11,10 +12,10 @@ namespace Transrender.Rendering
 {
     public class RayDefinition
     {
-        public Vector StartLocation { get; set; }
-        public Vector Step { get; set; }
-        public Vector XStartStep { get; set; }
-        public Vector YStartStep { get; set; }
+        public Vector3 StartLocation { get; set; }
+        public Vector3 Step { get; set; }
+        public Vector3 XStartStep { get; set; }
+        public Vector3 YStartStep { get; set; }
     }
 
     public class RaycastRenderer : ISpriteRenderer
@@ -24,40 +25,40 @@ namespace Transrender.Rendering
         private VoxelShader _shader;
         private IProjector _projector;
 
-        private Vector[] startLocations = new[]
+        private Vector3[] startLocations = new[]
          {
-            new Vector(0,0,-1),
-            new Vector(0,0,-1),
-            new Vector(0,1,-1),
-            new Vector(0,1,-1),
-            new Vector(1,0,-1),
-            new Vector(1,0,-1),
-            new Vector(1,-1,-1),
-            new Vector(1,-1,-1)
+            new Vector3(0,0,-1),
+            new Vector3(0,0,-1),
+            new Vector3(0,1,-1),
+            new Vector3(0,1,-1),
+            new Vector3(1,0,-1),
+            new Vector3(1,0,-1),
+            new Vector3(1,-1,-1),
+            new Vector3(1,-1,-1)
         };
 
-        private Vector[] steps = new[]
+        private Vector3[] steps = new[]
         {
-            new Vector(1,    0,    1),
-            new Vector(1,    -0.707, 1),
-            new Vector(0,    -1,   1),
-            new Vector(0.707, -0.707, 1),
-            new Vector(-1,   0,    1),
-            new Vector(-1,   0,    1),
-            new Vector(0,    1,    1),
-            new Vector(0,    1,    1)
+            new Vector3(1f,    0f,    1f),
+            new Vector3(1f,    -0.707f, 1f),
+            new Vector3(0f,    -1f,   1f),
+            new Vector3(0.707f, -0.707f, 1f),
+            new Vector3(-1f,   0f,    1f),
+            new Vector3(-1f,   0f,    1f),
+            new Vector3(0f,    1f,    1f),
+            new Vector3(0f,    1f,    1f)
         };
 
-        private Vector[] xSteps = new[]
+        private Vector3[] xSteps = new[]
 {
-            new Vector(0, 1, 0),
-            new Vector(1 - 0.707, 0.707, 0),
-            new Vector(1, 0, 0),
-            new Vector(0.5, 0.5, 0),
-            new Vector(0, 1, 0),
-            new Vector(0, 1, 0),
-            new Vector(-1,0, 0),
-            new Vector(-1,0, 0)
+            new Vector3(0f, 1f, 0f),
+            new Vector3(1f - 0.707f, 0.707f, 0f),
+            new Vector3(1f, 0f, 0f),
+            new Vector3(0.5f, 0.5f, 0f),
+            new Vector3(0f, 1f, 0f),
+            new Vector3(0f, 1f, 0f),
+            new Vector3(-1f,0f, 0f),
+            new Vector3(-1f,0f, 0f)
         };
 
         public RaycastRenderer(int projection, BitmapGeometry geometry, VoxelShader shader, IProjector projector)
@@ -96,10 +97,10 @@ namespace Transrender.Rendering
              */
             var rayDefinition = new RayDefinition
             {
-                StartLocation = new Vector(_shader.Width, _shader.Width, _shader.Width / 2) * startLocations[_projection],
-                Step = new Vector(1, 1, 0.5) * steps[_projection],
-                XStartStep = xSteps[_projection] * (1/renderScale),
-                YStartStep = new Vector(0, 0, 1 / renderScale)
+                StartLocation = new Vector3(_shader.Width, _shader.Width, _shader.Width / 2) * startLocations[_projection],
+                Step = new Vector3(1f, 1f, 0.5f) * steps[_projection],
+                XStartStep = xSteps[_projection] * new Vector3((float)(1/renderScale)),
+                YStartStep = new Vector3(0, 0, (float)(1 / renderScale))
             };
 
 
