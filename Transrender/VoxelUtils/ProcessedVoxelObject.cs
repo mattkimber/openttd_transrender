@@ -146,14 +146,7 @@ namespace Transrender.VoxelUtils
                 }
             }
 
-            var magnitude = Math.Sqrt((xVector * xVector) + (yVector * yVector) + (zVector * zVector));
-
-            return new Vector3
-            {
-                X = (float)(xVector / magnitude),
-                Y = (float)(yVector / magnitude),
-                Z = (float)(zVector / magnitude)
-            };
+            return Vector3.Normalize(new Vector3(xVector, yVector, zVector));
         }
 
         private Vector3 GetAveragedNormal(int x, int y, int z)
@@ -170,27 +163,18 @@ namespace Transrender.VoxelUtils
                         var normal = SafeGetNormal(x + i, y + j, z + k);
                         if(normal != null)
                         {
-                            result.X += normal.Value.X;
-                            result.Y += normal.Value.Y;
-                            result.Z += normal.Value.Z;
+                            result += normal.Value;
                         }
                     }
                 }
             }
-
-            var magnitude = Math.Sqrt((result.X * result.X) + (result.Y * result.Y) + (result.Z * result.Z));
-
-            if(magnitude < 0.5)
+            
+            if(result.Length() < 0.5)
             {
                 return Voxels[x][y][z].Normal;
             }
 
-            return new Vector3
-            {
-                X = (float)(result.X / magnitude),
-                Y = (float)(result.Y / magnitude),
-                Z = (float)(result.Z / magnitude)
-            };
+            return Vector3.Normalize(result);
         }
 
         private bool GetIsShadowed(int x, int y, int z)

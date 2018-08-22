@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 using Transrender.Palettes;
@@ -87,22 +88,8 @@ namespace Transrender.Rendering
                     foreach (var yLineItem in lastYLine)
                     {
                         var currentProjectedValue = _projector.GetPreciseProjectedValues(xStart, yLineItem.Item1, z, _projection, renderScale);
-                        var projectionStep = _projector.GetPreciseProjectedValues(xStart + xStep, yLineItem.Item1, z, _projection, renderScale);
-                        projectionStep[0] = projectionStep[0] - currentProjectedValue[0];
-                        projectionStep[1] = projectionStep[1] - currentProjectedValue[1];
-
-                        foreach (var xLineItem in yLineItem.Item2)
-                        {
-                            var screenSpace = new[] {
-                                    (int)(currentProjectedValue[0] + (projectionStep[0] * xLineItem.Steps)),
-                                    (int)(currentProjectedValue[1] + (projectionStep[1] * xLineItem.Steps))
-                                };
-
-                            if (screenSpace[0] < width && screenSpace[1] < height && screenSpace[0] >= 0 && screenSpace[1] >= 0)
-                            {
-                                result[screenSpace[0]][screenSpace[1]] = xLineItem.Result;
-                            }
-                        }
+                        var projectionStep = GetProjectionStep(xStep, xStart, yLineItem.Item1, z, currentProjectedValue, renderScale);
+                        RenderLine(width, height, result, yLineItem.Item2, currentProjectedValue, projectionStep);
                     }
                 }
                 else
@@ -119,24 +106,11 @@ namespace Transrender.Rendering
                         }
 
                         var currentProjectedValue = _projector.GetPreciseProjectedValues(xStart, y, z, _projection, renderScale);
-                        var projectionStep = _projector.GetPreciseProjectedValues(xStart + xStep, y, z, _projection, renderScale);
-                        projectionStep[0] = projectionStep[0] - currentProjectedValue[0];
-                        projectionStep[1] = projectionStep[1] - currentProjectedValue[1];
+                        var projectionStep = GetProjectionStep(xStep, xStart, y, z, currentProjectedValue, renderScale);
 
                         if (roundedY == lastY)
                         {
-                            foreach (var lineItem in lastXLine)
-                            {
-                                var screenSpace = new[] {
-                                    (int)(currentProjectedValue[0] + (projectionStep[0] * lineItem.Steps)),
-                                    (int)(currentProjectedValue[1] + (projectionStep[1] * lineItem.Steps))
-                                };
-
-                                if (screenSpace[0] < width && screenSpace[1] < height && screenSpace[0] >= 0 && screenSpace[1] >= 0)
-                                {
-                                    result[screenSpace[0]][screenSpace[1]] = lineItem.Result;
-                                }
-                            }
+                            RenderLine(width, height, result, lastXLine, currentProjectedValue, projectionStep);                           
                         }
                         else
                         {
@@ -163,14 +137,14 @@ namespace Transrender.Rendering
                                 }
                                 else if (!_shader.IsTransparent(roundedX, roundedY, roundedZ))
                                 {
-                                    var screenSpace = currentProjectedValue; // _projector.GetProjectedValues(x, y, z, _projection, renderScale);
+                                    var screenSpace = currentProjectedValue; 
 
                                     var pixel = _shader.ShadePixel(roundedX, roundedY, roundedZ, _projection, _projector.GetLightingVector(_projection));
                                     lastXLine.Add(new ShaderLine(x, steps, lastResult));
 
-                                    if (screenSpace[0] < width && screenSpace[1] < height && screenSpace[0] >= 0 && screenSpace[1] >= 0)
+                                    if (screenSpace.X < width && screenSpace.Y < height && screenSpace.X >= 0 && screenSpace.Y >= 0)
                                     {
-                                        result[(int)screenSpace[0]][(int)screenSpace[1]] = pixel;
+                                        result[(int)screenSpace.X][(int)screenSpace.Y] = pixel;
                                         lastResult = pixel;
                                     }
                                 }
@@ -180,8 +154,7 @@ namespace Transrender.Rendering
                                 }
 
                                 lastX = roundedX;
-                                currentProjectedValue[0] += projectionStep[0];
-                                currentProjectedValue[1] += projectionStep[1];
+                                currentProjectedValue += projectionStep;
 
 
                             }
@@ -195,6 +168,24 @@ namespace Transrender.Rendering
             }
 
             return result;
+        }
+
+        private static void RenderLine(int width, int height, ShaderResult[][] result, List<ShaderLine> line, Vector2 currentProjectedValue, Vector2 projectionStep)
+        {
+            foreach (var lineItem in line)
+            {
+                var screenSpace = currentProjectedValue + (projectionStep * lineItem.Steps);
+ 
+                if (screenSpace.X < width && screenSpace.Y < height && screenSpace.X >= 0 && screenSpace.Y >= 0)
+                {
+                    result[(int)screenSpace.X][(int)screenSpace.Y] = lineItem.Result;
+                }
+            }
+        }
+
+        private Vector2 GetProjectionStep(double xStep, double xStart, double y, double z, Vector2 currentProjectedValue, double renderScale)
+        {
+            return _projector.GetPreciseProjectedValues(xStart + xStep, y, z, _projection, renderScale) - currentProjectedValue;
         }
     }
 }
