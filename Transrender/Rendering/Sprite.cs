@@ -17,11 +17,15 @@ namespace Transrender.Rendering
         public List<ShaderResult>[][] PixelLists;
 
         private ISpriteRenderer _renderer;
+        private RayListCache _cache;
 
         private bool _isDoubleSize;
 
-        public Sprite(int projection, BitmapGeometry geometry, VoxelShader shader, IProjector projector)
+
+        public Sprite(int projection, BitmapGeometry geometry, VoxelShader shader, IProjector projector, RayListCache cache)
         {
+            _cache = cache;
+
             SetRenderer(projection, geometry, shader, projector);
             _isDoubleSize = shader.Width > 64;
 
@@ -58,6 +62,9 @@ namespace Transrender.Rendering
             {
                 case "raycast":
                     _renderer = new RaycastRenderer(projection, geometry, shader, projector);
+                    break;
+                case "raylist":
+                    _renderer = new RayListRenderer(projection, geometry, shader, projector, _cache);
                     break;
                 default:
                     _renderer = new PainterSpriteRenderer(projection, geometry, shader, projector);

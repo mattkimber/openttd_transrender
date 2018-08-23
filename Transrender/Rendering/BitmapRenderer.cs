@@ -16,10 +16,11 @@ namespace Transrender.Rendering
         private BitmapGeometry _geometry;
         private double _scale;
         private int _bitsPerPixel;
+        private RayListCache _cache;
         
         private const int _renderScale = 2;
 
-        public BitmapRenderer(VoxelShader shader, IProjector projector, IPalette palette, double scale = 1.0, int bitsPerPixel = 8)
+        public BitmapRenderer(VoxelShader shader, IProjector projector, IPalette palette, RayListCache cache, double scale = 1.0, int bitsPerPixel = 8)
         {
             _shader = shader;
             _projector = projector;
@@ -27,6 +28,7 @@ namespace Transrender.Rendering
             _scale = scale;
             _bitsPerPixel = bitsPerPixel;
             _geometry = new BitmapGeometry(scale);
+            _cache = cache;
         }
 
         private void RenderProjection(
@@ -36,7 +38,7 @@ namespace Transrender.Rendering
             int stride,
             int projection)
         {
-            var sprite = new Sprite(projection, _geometry, _shader, _projector);
+            var sprite = new Sprite(projection, _geometry, _shader, _projector, _cache);
 
             var finalXOffset = (int)(xOffset + (_geometry.GetSpriteWidth(projection) - (sprite.Width + (4 * _scale))));
             var finalYOffset = (int)(yOffset + (_geometry.GetSpriteHeight(projection) - (sprite.Height + (4 * _scale))));

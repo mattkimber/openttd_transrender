@@ -38,6 +38,8 @@ namespace Transrender
             var lockObject = new System.Object();
             WriteStatusBar(current, total, "", 0, 0);
 
+            var cache = new RayListCache();
+
             Parallel.ForEach(files, file =>
             {
                 var voxels = MagicaVoxelFileReader.Read(file);
@@ -48,7 +50,7 @@ namespace Transrender
 
                 foreach(var target in targets.Targets)
                 {
-                    var renderer = new BitmapRenderer(shader, projector, palette, target.Scale, target.Bpp);
+                    var renderer = new BitmapRenderer(shader, projector, palette, cache, target.Scale, target.Bpp);
 
                     if(!Directory.Exists(target.OutputFolder))
                     {
