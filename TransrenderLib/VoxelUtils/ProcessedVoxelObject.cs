@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Transrender.VoxelUtils
 {
@@ -14,10 +10,7 @@ namespace Transrender.VoxelUtils
         public int Width { get; private set; }
         public int Depth { get; private set; }
         public int Height { get; private set; }
-
         public byte[][][] Data { get; private set; }
-
-        
 
         public ProcessedVoxelObject(byte[][][] voxels)
         {

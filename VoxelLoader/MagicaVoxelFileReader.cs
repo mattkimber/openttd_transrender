@@ -67,7 +67,7 @@ namespace VoxelLoader
 
             foreach (var voxel in voxels)
             {
-                voxelArray[voxel.X][voxel.Y][(sizeZ - 1) - voxel.Z] = (byte)(voxel.Colour - 2);
+                voxelArray[voxel.X][voxel.Y][voxel.Z] = (byte)(voxel.Colour - 2);
             }
 
             return voxelArray;

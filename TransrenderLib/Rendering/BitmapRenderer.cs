@@ -1,34 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
 using Transrender.Palettes;
-using Transrender.Projector;
+using Transrender.Lighting;
 
 namespace Transrender.Rendering
 {
     public class BitmapRenderer
     {
         private VoxelShader _shader;
-        private IProjector _projector;
+        private ILightingVectors _lightingVectors;
         private IPalette _palette;
         private BitmapGeometry _geometry;
-        private double _scale;
         private int _bitsPerPixel;
-        private RayListCache _cache;
+        private string _rendererChoice;
         
-        private const int _renderScale = 2;
 
-        public BitmapRenderer(VoxelShader shader, IProjector projector, IPalette palette, RayListCache cache, double scale = 1.0, int bitsPerPixel = 8)
+        public BitmapRenderer(VoxelShader shader, ILightingVectors lightingVectors, IPalette palette, string rendererChoice, double scale = 1.0, int bitsPerPixel = 8)
         {
             _shader = shader;
-            _projector = projector;
+            _lightingVectors = lightingVectors;
             _palette = palette;
-            _scale = scale;
             _bitsPerPixel = bitsPerPixel;
             _geometry = new BitmapGeometry(scale);
-            _cache = cache;
+            _rendererChoice = rendererChoice;
         }
 
         private void RenderProjection(
@@ -38,19 +32,7 @@ namespace Transrender.Rendering
             int stride,
             int projection)
         {
-            var sprite = new Sprite(projection, _geometry, _shader, _projector, _cache);
-
-            var finalXOffset = (int)(xOffset + (_geometry.GetSpriteWidth(projection) - (sprite.Width + (4 * _scale))));
-            var finalYOffset = (int)(yOffset + (_geometry.GetSpriteHeight(projection) - (sprite.Height + (4 * _scale))));
-
-            if (projection == 0)
-            {
-                finalYOffset += (int)(2 * _scale);
-            }
-            else if(projection == 4)
-            {
-                finalYOffset += (int)(4 * _scale);
-            }
+            var sprite = new Sprite(projection, _geometry, _shader, _lightingVectors, _rendererChoice);
 
             for (var x = 0; x < sprite.PixelLists.Length; x++)
             {
@@ -59,9 +41,9 @@ namespace Transrender.Rendering
                     if(sprite.PixelLists[x][y] != null)
                     { 
                         var colour = _palette.GetCombinedColour(sprite.PixelLists[x][y]);
-                        var destinationPixel = finalXOffset + x + ((finalYOffset + y) * stride);
+                        var destinationPixel = xOffset + x + ((yOffset + y) * stride);
 
-                        if (destinationPixel < buffer.GetLength() && (finalXOffset + x) >= 0 && (finalYOffset + y) >= 0 && colour.PaletteColour != 0)
+                        if (destinationPixel < buffer.GetLength() && (xOffset + x) >= 0 && (yOffset + y) >= 0 && colour.PaletteColour != 0)
                         {
                             buffer.SetPixelToColour(destinationPixel, colour);
                         }

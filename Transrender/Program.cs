@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Transrender.Configuration;
 using Transrender.Palettes;
-using Transrender.Projector;
+using Transrender.Lighting;
 using Transrender.Rendering;
 using Transrender.VoxelUtils;
 using VoxelLoader;
@@ -38,19 +38,18 @@ namespace Transrender
             var lockObject = new System.Object();
             WriteStatusBar(current, total, "", 0, 0);
 
-            var cache = new RayListCache();
-
             Parallel.ForEach(files, file =>
             {
                 var voxels = MagicaVoxelFileReader.Read(file);
                 var processedVoxels = new ProcessedVoxelObject(voxels);
 
                 var shader = new VoxelShader(palette, processedVoxels);
-                var projector = new TTDProjector(shader.Width, shader.Height, shader.Depth);
+                var lightingVectors = new TTDLightingVectors();
+                var rendererChoice = ConfigurationManager.AppSettings["renderer"] ?? "default";
 
-                foreach(var target in targets.Targets)
+                foreach (var target in targets.Targets)
                 {
-                    var renderer = new BitmapRenderer(shader, projector, palette, cache, target.Scale, target.Bpp);
+                    var renderer = new BitmapRenderer(shader, lightingVectors, palette, rendererChoice, target.Scale, target.Bpp);
 
                     if(!Directory.Exists(target.OutputFolder))
                     {

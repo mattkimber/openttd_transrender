@@ -138,29 +138,6 @@ namespace Transrender.Palettes
             return TtdRangeBoundaries[rangeIndex - 1];
         }
 
-
-        private ColourFlag GetColourBehaviour(int index)
-        {
-            return _colourFlags[index];
-        }
-
-        private byte GetShiftedColour(byte colour, int amount)
-        {
-            var range = GetRange(colour);
-            var result = colour + amount;
-
-            if(result > GetRangeMaximum(range))
-            {
-                result = (byte)GetRangeMaximum(range);
-            }
-            else if(result < GetRangeMinimum(range))
-            {
-                result = (byte)GetRangeMinimum(range);
-            }
-
-            return (byte)result;
-        }
-
         public bool IsSpecialColour(byte colour)
         {
             return _colourFlags[colour] == ColourFlag.TakesPriority;

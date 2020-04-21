@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Drawing;
-using System.Linq;
 using System.Numerics;
 using Transrender.Palettes;
-using Transrender.Projector;
-using Transrender.Util;
 using Transrender.VoxelUtils;
 
 namespace Transrender.Rendering
@@ -147,13 +143,15 @@ namespace Transrender.Rendering
                 };
             }
             
-            var offset = GetLighting(x,y,z,lightingVector);
+            var offset = GetLighting(x,y,z,lightingVector) / 1.5;
             offset = (offset + 1.0);
 
             if(_voxels.Voxels[x][y][z].IsShadowed)
             {
                 offset = offset * 0.75;
             }
+
+            //offset = (offset - 1.0);
 
             var finalColor = (double)originalColor + ((offset - 1.0) * 4.0);
             
@@ -169,18 +167,6 @@ namespace Transrender.Rendering
                 Has32BitData = true
             };
 
-            /*
-            result = new ShaderResult
-            {
-                PaletteColour = ditheredTtdColour,
-                R = (byte)(offset * 127.0),
-                G = (byte)(offset * 127.0),
-                B = (byte)(offset * 127.0),
-                M = m,
-                Has32BitData = true
-            };
-            */
-
             _shaderCache[projection][x][y][z] = result;
             return result;
 
@@ -190,15 +176,16 @@ namespace Transrender.Rendering
         {
             var result = value * multiplier;
             if(result > 255) return 255;
+            if (result < 0) return 0;
             return (byte)result;
         }
 
         private double GetLighting(int x, int y, int z, Vector3 lightingVector)
         {
             var normal = _voxels.Voxels[x][y][z].AveragedNormal;
-            var dotProduct = (normal.X * lightingVector.X) 
-                + (normal.Y * lightingVector.Y) 
-                + (normal.Z * lightingVector.Z);
+            var dotProduct = (normal.X * (lightingVector.X)) 
+                + (normal.Y * (lightingVector.Y)) 
+                + (normal.Z * (lightingVector.Z));
 
             var magnitude = normal.Length() * lightingVector.Length();
             return dotProduct / magnitude;
