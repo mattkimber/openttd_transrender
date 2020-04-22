@@ -39,6 +39,7 @@ namespace Transrender
             WriteStatusBar(current, total, "", 0, 0);
 
             Parallel.ForEach(files, file =>
+            //files.ToList().ForEach(file =>
             {
                 var voxels = MagicaVoxelFileReader.Read(file);
                 var processedVoxels = new ProcessedVoxelObject(voxels);

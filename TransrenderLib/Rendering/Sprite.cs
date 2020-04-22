@@ -36,7 +36,7 @@ namespace Transrender.Rendering
 
         private List<ShaderResult>[][] GetPixelLists(int projection, ShaderResult[][] pixels)
         {
-            var renderFactor = BitmapGeometry.RenderScale * 2;
+            var renderFactor = BitmapGeometry.RenderScale;
 
             var width = pixels.Length / renderFactor + 1;
             var height = pixels[0].Length / renderFactor + 1;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using Transrender.Palettes;
+using Transrender.Util;
 using Transrender.VoxelUtils;
 
 namespace Transrender.Rendering
@@ -58,7 +59,6 @@ namespace Transrender.Rendering
             }
         }
 
-
         private byte GetDitheredColour(double originalColor, double finalColor, bool dither)
         {
             var error = (Math.Round(finalColor) - finalColor);
@@ -106,13 +106,13 @@ namespace Transrender.Rendering
         public ShaderResult ShadePixel(int x, int y, int z, int projection, Vector3 lightingVector)
         {
 
-            if(_shaderCache[projection][x][y][z] != null)
+            if (_shaderCache[projection][x][y][z] != null)
             {
                 return _shaderCache[projection][x][y][z];
             }
 
-            var originalColor = GetRawPixel(x,y,z);
-            
+            var originalColor = GetRawPixel(x, y, z);
+
             byte r, g, b, m;
 
             if (_palette.IsMaskColour(originalColor))
@@ -123,7 +123,7 @@ namespace Transrender.Rendering
                 r = _palette.GetGreyscaleEquivalent(originalColor);
                 g = _palette.GetGreyscaleEquivalent(originalColor);
                 b = _palette.GetGreyscaleEquivalent(originalColor);
-                m = (byte)(originalColor + (diff / 2));
+                m = (byte)midpoint; // (originalColor + (diff / 2));
 
             }
             else
@@ -133,7 +133,7 @@ namespace Transrender.Rendering
                 b = _palette.Palette.Entries[originalColor].B;
                 m = 0;
             }
-            
+
             if (_palette.IsSpecialColour(originalColor))
             {
                 return new ShaderResult
@@ -142,27 +142,39 @@ namespace Transrender.Rendering
                     R = r, G = g, B = b, A = 0, M = m, Has32BitData = true
                 };
             }
-            
-            var offset = GetLighting(x,y,z,lightingVector) / 1.5;
-            offset = (offset + 1.0);
 
-            if(_voxels.Voxels[x][y][z].IsShadowed)
+            var offset = GetLighting(x, y, z, lightingVector);
+            if (Double.IsNaN(offset)) offset = 0.0;
+
+            // Stop non-masked colours becoming too light
+            if (m == 0) offset -= 0.2;
+
+            // Darken generally
+            offset -= 0.1;
+
+            if (_voxels.Voxels[x][y][z].IsShadowed)
             {
-                offset = offset * 0.75;
+                offset -= 0.5;
             }
 
-            //offset = (offset - 1.0);
+            var finalColor = (double)originalColor + (offset * 4.0);
 
-            var finalColor = (double)originalColor + ((offset - 1.0) * 4.0);
-            
             var ditheredTtdColour = GetDitheredColour(originalColor, finalColor, true);
+
+            var litColor = ColourUtil.Light(r, g, b, offset);
+
+            // Mask influences shading
+            if(m != 0)
+            {
+                m += (byte)((offset * 3.0) - 1);
+            }
 
             var result = new ShaderResult
             {
                 PaletteColour = ditheredTtdColour,
-                R = GetClampedColour(r, offset),
-                G = GetClampedColour(g, offset),
-                B = GetClampedColour(b, offset),
+                R = litColor.R,
+                G = litColor.G,
+                B = litColor.B,
                 M = m,
                 Has32BitData = true
             };
@@ -174,7 +186,7 @@ namespace Transrender.Rendering
 
         private byte GetClampedColour(byte value, double multiplier)
         {
-            var result = value * multiplier;
+            var result = value * (multiplier + 1.0);
             if(result > 255) return 255;
             if (result < 0) return 0;
             return (byte)result;
@@ -183,9 +195,7 @@ namespace Transrender.Rendering
         private double GetLighting(int x, int y, int z, Vector3 lightingVector)
         {
             var normal = _voxels.Voxels[x][y][z].AveragedNormal;
-            var dotProduct = (normal.X * (lightingVector.X)) 
-                + (normal.Y * (lightingVector.Y)) 
-                + (normal.Z * (lightingVector.Z));
+            var dotProduct = Vector3.Dot(normal, lightingVector);
 
             var magnitude = normal.Length() * lightingVector.Length();
             return dotProduct / magnitude;

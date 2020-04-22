@@ -3,7 +3,7 @@
     public class BitmapGeometry
     {
         public double Scale { get; private set; }
-        public const int RenderScale = 2;
+        public const int RenderScale = 4;
 
         public BitmapGeometry(double scale)
         {
@@ -12,14 +12,14 @@
 
         public int GetSpriteWidth(int projection)
         {
-            var allProjections = new[] { 24, 22, 32, 22, 24, 22, 32, 22 };
+            var allProjections = new[] { 24, 26, 32, 26, 24, 26, 32, 26 };
             return (int)(allProjections[projection] * 2 * Scale);
         }
 
 
         public int GetSpriteHeight(int projection)
         {
-            var allProjections = new[] { 26, 22, 24, 22, 26, 22, 24, 22 };
+            var allProjections = new[] { 26, 26, 24, 26, 26, 26, 24, 26 };
             return (int)(allProjections[projection] * 2 * Scale);
         }
 

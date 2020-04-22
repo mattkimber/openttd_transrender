@@ -122,14 +122,13 @@ namespace Transrender.VoxelUtils
             var distance = 3;
 
             // Sum the directions of "open" voxels
-            // TODO: this should be a sphere not a cube
             for(var i = -distance; i <= distance; i++)
             {
                 for (var j = -distance; j <= distance; j++)
                 {
                     for(var k = -distance; k <= distance; k++)
                     {
-                        if((i*i)+(j*j)+(k*k) <= (distance*distance) && SafeGetData(x+i,y+j,z+k) == 0)
+                        if((i*i)+(j*j)+(k*k) <= (distance*distance) && SafeGetData(x+i,y+j,z-k) == 0)
                         {
                             xVector -= i;
                             yVector -= j;
@@ -145,7 +144,7 @@ namespace Transrender.VoxelUtils
         private Vector3 GetAveragedNormal(int x, int y, int z)
         {
             var result = new Vector3();
-            var distance = 1;
+            var distance = 2;
 
             for (var i = -distance; i <= distance; i++)
             {
@@ -172,12 +171,12 @@ namespace Transrender.VoxelUtils
 
         private bool GetIsShadowed(int x, int y, int z)
         {
-            if(SafeGetData(x,y,z-1) != 0)
+            if(SafeGetData(x,y,z+1) != 0)
             {
                 return false;
             }
 
-            for(var i = 0; i < z; i++)
+            for(var i = z+1; i <= Height; i++)
             {
                 if(SafeGetData(x,y,i) != 0)
                 {
